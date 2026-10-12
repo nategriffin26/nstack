@@ -33,7 +33,8 @@ CONTRACTS = [HOME / "Projects/context-wt/next/apps/core/src/factory/context.cont
 BACKUPS = REPO / "local" / "backups"
 BASELINE = BACKUPS / "baseline"
 BEGIN, END = "<!-- nstack:begin -->", "<!-- nstack:end -->"
-MAX_STANDARD_CHARS = 6500
+# Context embeds each standard whole in a worker's 32k-token pack; 8,000 chars is about 2k tokens.
+MAX_STANDARD_CHARS = 8000
 
 
 def repo_skills():

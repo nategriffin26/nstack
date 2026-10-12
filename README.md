@@ -27,7 +27,7 @@ The first install saved the pre-nstack state to `local/backups/baseline/` (with 
 | `extensions/nstack-guard.ts` | omp extension | one-line reminders when a session's build subagents reach 6/12/24/48 (research and verifier lanes not counted) or its first 5-wide task call, and at 6/15/30/60 markdown files written; never blocks |
 | `audit/scripts/` | — | the extraction and metrics behind the report; `metrics.py --since <date>` measures sessions after a change; `research_scaling.py` measures what research lanes add |
 
-Context's contract (`apps/core/src/factory/context.contract.json`, `standards`) maps task types to these six skill names and embeds the whole `SKILL.md`, so each skill stays self-contained and under 6,500 characters; `install.py --check` enforces both.
+Context's contract (`apps/core/src/factory/context.contract.json`, `standards`) maps task types to these six skill names and embeds the whole `SKILL.md` in a 32k-token worker pack, so each skill stays self-contained and under 8,000 characters (about 2k tokens); `install.py --check` enforces both.
 
 ## Credits
 
