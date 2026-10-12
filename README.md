@@ -2,6 +2,22 @@
 
 How Nate's software gets built, for omp sessions and for Dross's workers. Size the ask, pin the facts and decisions that change the result, design the simplest shape that meets every requirement, show taste before building it, prove each slice on Nate's real surface, and delegate only when it pays. The evidence behind every rule is in [audit/REPORT.md](audit/REPORT.md).
 
+## Using it
+
+Nothing to invoke. The standing rules ride on every request in every omp session and subagent. The agent reads `skill://nstack` itself before features and multi-step work (all 6 feature asks in a test at the default Opus max; quick fixes may skip it, as intended), and `skill://nstack-design` for new systems, rewrites and unsettled architecture or look. Builder subagents start with nstack loaded, and Dross's workers get it in their context pack.
+
+| Command | Does |
+|---|---|
+| `/nstack <task>` | runs the task with the full process; use it when a session runs at lower effort or treats a real feature as a quick fix |
+| `/nstack shape <ask>` | requirements, architecture with what forces each part, slices and checks, plus one batch of questions; builds nothing |
+| `/nstack review` | reviews the current change against the ask, each finding with a failing case |
+| `/nstack verify` | proves the current work on the real surface with every check that can see a failure |
+| `/nstack catchup` or `/bro catch me up` | catches up on everything since the last message |
+| `/bro` | re-explains the last reply plainly |
+| `/skill:nstack-teach <question>` | explains how or why something works, grounded in the code |
+
+A one-shot lands when the ask carries the outcome in Nate's words, where he will check it (phone, the Mac app after restart, the CLI), what must not change, and references for anything visual (or "show me directions"). The agent asks one batch of questions up front, only what he alone can decide, then does not stop again. Anything he says explicitly overrides nstack: models, number of agents, skipping a preview. Long work keeps a ledger at `local/nstack/<slug>.md` in the project, and a new session resumes from it ("continue <thing>" or `/nstack catchup`).
+
 ## Install
 
 ```sh
