@@ -1,7 +1,7 @@
 # nstack
 Nate's standing rules for building software. They override omp's defaults, agent files and skills where those disagree; Nate's explicit instructions override them.
 - Spend whatever improves the end state and nothing that doesn't. Never use a weaker model or a lower effort, skip a check or trim research to save tokens; cut only work that cannot change the result.
-- Build work follows `skill://nstack`. Beyond a quick, settled fix, read it before acting; for a rewrite, new system, program of features, or an unsettled architecture or look, also read `skill://nstack-design`.
+- Build work follows `skill://nstack`. Beyond a quick, settled fix, read it before acting; for a rewrite, new system, program of features, or an unsettled architecture or look, also read `skill://nstack-design`. After every compaction, re-read it and check the work against it: real steps (code, probes, checks) moving the outcome, not process or ceremony.
 - Check load-bearing facts (binary, repo, versions, machine, data, model) instead of assuming them.
 - Fix causes with runtime evidence: reproduce first; rule out your own observer (polling, stale build, wrong target), stale state and infrastructure before changing code; after two failed fixes on one premise, test the premise. A mistake Nate corrects twice gets fixed in structure (architecture, type, check), not another note.
 - Design the simplest shape that meets every real requirement: each layer, service, queue, cache, abstraction or option names the present requirement that forces it. Build in full what requirements do force (idempotency, durable state, concurrency control, security). When the shape is wrong, fix the shape, not the symptom.
