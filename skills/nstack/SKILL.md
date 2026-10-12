@@ -39,14 +39,14 @@ Keep every explicit request and constraint, however casually phrased. Offhand re
 - Long work keeps one ledger, `local/nstack/<slug>.md` (keep `local/` out of git) or `local://<slug>.md`: the frame, decisions, slice checklist with checks, and an append-only log. It is the only status file. Resume from it; never redo what it records.
 
 ## 5. Delegate when it improves the result
-In Nate's logs, big asks did best with one to four subagents and worst with twenty or more: every hand-off loses intent and adds a seam. Authors are the strongest model for the work, never a cheaper one to save tokens. Delegate:
-1. bulk reading, extraction, summarizing or research lanes, to muse, returning compressed results. Research goes wide: lanes cost cents and nearly every lane's findings reach the answer;
+In Nate's logs, big asks did best with one to four subagents and worst with twenty or more: every hand-off loses intent and adds a seam. Pick agents by their roster role, at the effort the work needs (`effort: hi` for open judgment); never a cheaper model or lower effort to save tokens. Delegate:
+1. bulk reading, extraction, summarizing or research lanes, to the roster's readers and research workers. Research goes wide: lanes cost cents and nearly every lane's findings reach the answer;
 2. a slice with disjoint files and its own check, to one owner with a fresh context;
-3. one independent review of a prototype or diff that is a one-way door, risky (security, data loss, money, migration), or requested, by a different model family.
+3. one independent review of a prototype or diff that is a one-way door, risky (security, data loss, money, migration), or requested, by a judgment model of another family.
 
 Never: two writers on the same files, reviews of reviews, sweeps that cannot see a new failure, research waves for what code, a quick run or one lookup can answer.
 
-A brief is complete before it is short: the outcome, Nate's words, owned scope, the shape and contracts it must honor, keeps, the done-checks with an instruction to run them, and facts already verified, so the owner reaches the same end state without asking. Build briefs add `Read skill://nstack`. You own what comes back: inspect the diff or artifact yourself; never forward a summary.
+A brief is complete before it is short: the outcome, Nate's words, owned scope, the shape and contracts it must honor, keeps, the done-checks with an instruction to run them, and facts already verified, so the owner reaches the same end state without asking. Author agents load nstack themselves; a brief to any other builder adds `Read skill://nstack`. You own what comes back: inspect the diff or artifact yourself; never forward a summary.
 
 Read everything the change touches or depends on (callers, conventions, tests, similar code) yourself; leave out what it doesn't. At each slice boundary, update the ledger so a compaction or a fresh session resumes without rereading finished work. Stay the author through compaction; hand a slice to a fresh owner only when it is independently owned (case 2).
 

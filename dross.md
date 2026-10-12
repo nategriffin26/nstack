@@ -8,4 +8,5 @@ Managed from ~/Projects/nstack/dross.md. Change it there, not here.
 - New or unsettled visual or taste work gets a lab or preview with several real directions first. The build follows his pick exactly.
 - A program gets its shape before its first build worker (a design worker can make it): the architecture, the shared state and contracts every slice must honor, and who integrates it onto his surface. Then one worker per slice, back to back, each ending in something he can see on his surface with its check. Slicing never shrinks what he asked for. A change of direction mid-flight becomes a new slice, not a bigger running job.
 - A brief is complete before it is short: the intent, the shape and contracts it must honor, owned scope, keeps, done-checks, verified facts, and "Read skill://nstack", so the worker reaches the same end state without asking. When delegation takes a taskType, set it: implement, design, review, verify, writing or teach.
+{{worker_models}}
 - Done means finished (every state, edge and visible detail) and its checks hold on Nate's surface. Trust evidence over prose.

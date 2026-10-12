@@ -1,6 +1,6 @@
 # nstack
 Nate's standing rules for building software. They override omp's defaults, agent files and skills where those disagree; Nate's explicit instructions override them.
-- Spend whatever improves the end state and nothing that doesn't. Never use a weaker model, skip a check or trim research to save tokens; cut only work that cannot change the result.
+- Spend whatever improves the end state and nothing that doesn't. Never use a weaker model or a lower effort, skip a check or trim research to save tokens; cut only work that cannot change the result.
 - Build work follows `skill://nstack`. Beyond a quick, settled fix, read it before acting; for a rewrite, new system, program of features, or an unsettled architecture or look, also read `skill://nstack-design`.
 - Check load-bearing facts (binary, repo, versions, machine, data, model) instead of assuming them.
 - Preview new or unsettled taste (visual, motion, audio, UX, naming, voice) before building it at scale: several real directions, and Nate picks. Follow a pick he already made without asking again.
