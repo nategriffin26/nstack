@@ -23,11 +23,11 @@ Models drift two ways: they add machinery nothing needs (Nate: "opus has MASSIVE
 - **Judge it by use**: the next feature touches one obvious place; state can be inspected and failures surface near their cause; it runs fast, fails small, and is cheap to change or delete. Prefer what is easy to change over what anticipates more.
 - When the existing shape is the problem (one kind of bug keeps returning, a small change touches many places), say so and propose the simpler shape instead of patching around it; a large rework is a `[Nate]` decision.
 
-Design twice, unless sound existing code dictates the shape (then use it and say so): sketch the plainest design that meets every requirement and the strongest alternative, each starting from how a caller uses it. Screen both against the lists below, choose the simpler unless a named requirement rules it out, and record why in three to five lines with the rejected alternative. For a one-way door, probe the riskiest difference before choosing.
+Design twice, unless sound existing code dictates the shape (then use it and say so): sketch the plainest design that meets every requirement and the strongest alternative (a second model may draw it; `skill://nstack-agents`), each starting from how a caller uses it. Screen both against the lists below, choose the simpler unless a named requirement rules it out, and record why in three to five lines with the rejected alternative. For a one-way door, probe the riskiest difference before choosing.
 
 Overbuilt (cut unless a requirement forces it): a layer or manager that only forwards; an interface, factory or registry with one implementation; options for values that never change; an event bus, queue or IPC inside one process; another service, daemon or store where a module or the existing store works; a cache nobody measured; the same state kept twice and synced; a framework, DSL or plugin system for one use; a custom engine where a proven library exists; documents in place of a working slice.
 
-Wrong or underbuilt (fix before building): a requirement or invariant the design cannot meet; two writers of one state, or two ways to do one task; callers who must know internal rules or call several methods to finish one operation; one representation or policy repeated across modules or hand-synced lists; stages split by execution order instead of by the knowledge they own; types that only compile with casts or escape hatches; a lock where the data could have one owner.
+Wrong or underbuilt (fix before building): a requirement or invariant the design cannot meet; two writers of one state, or two ways to do one task; callers who must know internal rules or call several methods to finish one operation; one representation or policy repeated across modules or hand-synced lists; stages split by execution order instead of by the knowledge they own; state kept as loose flags, phases or optional fields where a state machine or sum type would make invalid states unrepresentable; external input used past the boundary without one parse into a typed model; types written by hand beside the schema or file that owns the shape; types that only compile with casts or escape hatches; a lock where the data could have one owner.
 
 ## 3. Settle the other forks
 - Observable forks (`[run]`): settle with the cheapest probe and a go/no-go number. Probes come before matrices, datasets, training runs and fan-out.
@@ -38,7 +38,7 @@ Batch every `[Nate]` decision into one message (the `ask` tool in omp, an intent
 
 ## 5. Slice
 - Order the work as slices. Each ends in something Nate can see or use on his real surface, plus the check that proves it. Slice 1 is the thinnest end-to-end path at full quality through every layer, riskiest unknown first.
-- For a rewrite or migration, build the oracle first: golden outputs, conformance cases or recorded behavior from the old system, on the real topology. Contracts and oracles are code (types, schemas, golden files, conformance tests).
+- For a rewrite, migration or refactor, build the oracle first: golden outputs, conformance cases or recorded behavior from the old system, on the real topology. Contracts and oracles are code (types, schemas, golden files, conformance tests).
 - Each slice fits one fresh context and a reviewable diff. A slice that needs a different design than the shape sends you back to section 2; do not patch around a wrong shape. Code that shares files belongs to one owner; parallel slices need disjoint files and their own checks.
 
 ## 6. The shape (output)
@@ -64,7 +64,7 @@ Log:
 The log is append-only. The ledger is the only plan or status file: no separate specs, roadmaps, per-agent status files or design docs unless Nate asks.
 
 ## 7. Do not
-- Start audit waves, or a research wave before reading the code or before Nate has picked a scope its lanes depend on.
+- Start overlapping or stacked audit waves, or a research wave before reading the code or before Nate has picked a scope its lanes depend on.
 - Send a plan to reviewers. Review the prototype or the diff.
 - Write a prose spec. Contracts belong in code and tests; everything else fits the shape.
 - Hand a worker a program. One brief is one slice, carrying the shape and the contracts it must honor.

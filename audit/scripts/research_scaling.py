@@ -190,8 +190,11 @@ def main():
     for d, r in runs.items():
         runs_by_slug[r["slug"]].append(d)
 
+    context_workers = [p for p in (f"{HOME}/.context-cutover/frozen/workers",
+                                   f"{os.environ.get('CONTEXT_HOME') or HOME + '/.context-next'}/workers/sessions")
+                       if os.path.isdir(p)]
     grep = subprocess.run(["/usr/bin/grep", "-rl", "--null", "--include=*.jsonl", "local/research/",
-                           f"{HOME}/.omp/agent/sessions", f"{HOME}/.context/workers"], capture_output=True, text=True)
+                           f"{HOME}/.omp/agent/sessions", *context_workers], capture_output=True, text=True)
     files = sorted(f for f in grep.stdout.split("\0") if f)
     with ProcessPoolExecutor(max_workers=10) as ex:
         orchs = [o for o in ex.map(scan, files, chunksize=4) if o]

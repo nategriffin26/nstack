@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Compress omp + Context (Dross/worker) session logs into per-session digests.
 
-Read-only over ~/.omp/agent/sessions, ~/.context/sessions, ~/.context/workers.
+Read-only over ~/.omp/agent/sessions and Context's sessions and workers: the pre-cutover home frozen in
+~/.context-cutover/frozen (Dross's omp sessions and old-layout workers) and the live home's workers/sessions.
 Writes:
   local/digests/sessions.jsonl   one stats record per root session (subagents rolled up)
   local/digests/md/<key>.md      one readable digest per root session (user turns verbatim-ish,
@@ -13,6 +14,8 @@ from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 
 HOME = os.path.expanduser("~")
+FROZEN = f"{HOME}/.context-cutover/frozen"
+CONTEXT_HOME = os.environ.get("CONTEXT_HOME") or f"{HOME}/.context-next"
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "local", "digests")
 REMINDER = re.compile(r"<(system-reminder|system-notice|system-directive|system-interrupt)[^>]*>.*?</\1>", re.S)
 WS = re.compile(r"\n{3,}")
@@ -145,13 +148,13 @@ def roots():
     for f in glob.glob(f"{HOME}/.omp/agent/sessions/*/*.jsonl"):
         proj = f.split("/sessions/")[1].split("/")[0]
         yield ("omp", proj, f)
-    for f in glob.glob(f"{HOME}/.context/sessions/*.jsonl"):
+    for f in glob.glob(f"{FROZEN}/sessions/*.jsonl"):
         yield ("dross", "dross", f)
-    for w in glob.glob(f"{HOME}/.context/workers/*/session"):
-        wid = w.split("/workers/")[1].split("/")[0]
-        files = sorted(glob.glob(w + "/*.jsonl"))
-        for f in files:
-            yield ("worker", wid[:8], f)
+    for pattern in (f"{FROZEN}/workers/*/session", f"{CONTEXT_HOME}/workers/sessions/*"):
+        for w in glob.glob(pattern):
+            wid = w.split("/")[-2] if w.endswith("/session") else w.split("/")[-1]
+            for f in sorted(glob.glob(w + "/*.jsonl")):
+                yield ("worker", wid[:8], f)
 
 
 def summarize(item):
