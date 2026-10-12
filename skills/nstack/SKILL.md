@@ -1,11 +1,11 @@
 ---
 name: nstack
-description: How Nate's software gets built. Size the ask, pin the deciding facts and decisions, preview unsettled taste, finish and prove each slice on his real surface, delegate only when it improves the result. Read before a feature, rewrite, multi-step change or unsettled fix, and before briefing a subagent or worker.
+description: How Nate's software gets built. Size the ask, pin the deciding facts and decisions, design the simplest correct shape, preview unsettled taste, finish and prove each slice on his real surface, delegate only when it improves the result. Read before a feature, rewrite, multi-step change or unsettled fix, and before briefing a subagent or worker.
 ---
 
 # nstack
 
-Nate wants the best possible end state, with taste, without babysitting. Tokens are not the constraint: spend whatever improves the end state and nothing that doesn't. His logs show what stops that: unpinned facts, taste built before he saw it, unfinished edges, "done" claimed off his surface, and fan-out that lost intent. Slices order the proof; they never shrink the product.
+Nate wants the best possible end state, with taste, without babysitting. Tokens are not the constraint: spend whatever improves the end state and nothing that doesn't. His logs show what stops that: unpinned facts, overbuilt designs, taste built before he saw it, unfinished edges, "done" claimed off his surface, and fan-out that lost intent. Slices order the proof; they never shrink the product.
 
 ## 1. Size the ask
 - **S**: one sitting, clear outcome. Do it, finish it, prove it, report.
@@ -30,12 +30,12 @@ Keep every explicit request and constraint, however casually phrased. Offhand re
 - `[run]`: anything observable (behavior, speed, layout, which approach works) is settled by the cheapest probe: a spike, a measurement, a throwaway prototype. Probe before any matrix, dataset, training run or fan-out.
 - `[Nate]`: taste, scope, priorities, one-way doors. Ask once, up front, in one message: numbered, each with 2 to 4 options, your recommendation, and what changes. Use the `ask` tool in omp; an intent card in Dross. Then do not stop again for what he decided.
 - `[mine]`: reversible technical choices take the proven option. Details inside a direction he approved get your best call in its spirit, not the blandest one. Report a default only if it changes what he sees.
+- **Design**, at every size: meet every real requirement with the fewest concepts and moving parts. Start plain: one process, one store, direct calls, one owner per piece of state, the platform's and codebase's own mechanisms, proven libraries. Add a layer, service, queue, cache, interface, option or framework only for a present requirement you can name; a wish gets a clean seam, not machinery. Build in full what the requirements force (idempotency for money, durable state and recovery, concurrency control, merge rules, security boundaries), and walk each invariant through a crash mid-step, a restart, a duplicate and two concurrent runs. When one kind of bug keeps returning, question the shape before patching.
 - **Taste** (visual, motion, audio, UX, naming, voice): study his references first. Preview anything new or unsettled before building it at scale: several genuinely different directions at real fidelity, on the surface he will judge them (frames, clips, mocks, side by side or behind one switcher). Build exactly his pick, then compare the build against it and close every difference. A pick or reference he already gave stands; copy fixes and applying an approved style need no preview. Never judge his taste for him.
 - Never ask permission for something he asked for. Never add caps, limits or approval gates of your own.
 
 ## 4. Slice and build
 - L and XL work is a sequence of slices. Each slice ends in something Nate can see on his surface, with its check. First slice: the thinnest end-to-end path at full quality, riskiest unknown first. Run the slices back to back unless a check fails or a new `[Nate]` decision appears.
-- One author for code that shares files. Parallel writers only on disjoint files, each with its own check.
 - Long work keeps one ledger, `local/nstack/<slug>.md` (keep `local/` out of git) or `local://<slug>.md`: the frame, decisions, slice checklist with checks, and an append-only log. It is the only status file. Resume from it; never redo what it records.
 
 ## 5. Delegate when it improves the result
@@ -51,7 +51,7 @@ A brief is complete before it is short: the outcome, Nate's words, owned scope, 
 Read everything the change touches or depends on (callers, conventions, tests, similar code) yourself; leave out what it doesn't. At each slice boundary, update the ledger so a compaction or a fresh session resumes without rereading finished work. Stay the author through compaction; hand a slice to a fresh owner only when it is independently owned (case 2).
 
 ## 6. Finish, then prove it on his surface
-Finish before done: every state the change touches (empty, loading, error, offline, first run), edge inputs, copy, consistency with the rest of the product, speed, and no debug output, dead code or TODOs. Look at what you built on the real surface, beside the reference he picked, and fix every visible defect (alignment, spacing, clipping, contrast, jank, timing, artifacts, levels) before he sees it. His eye decides taste; yours catches defects. The diff should read like a careful expert wrote it.
+Finish before done: every state the change touches (empty, loading, error, offline, first run), edge inputs, copy, consistency with the rest of the product, speed, and no debug output, dead code, unused options or TODOs. Look at what you built on the real surface, beside the reference he picked, and fix every visible defect (alignment, spacing, clipping, contrast, jank, timing, artifacts, levels) before he sees it. His eye decides taste; yours catches defects. The diff should read like a careful expert wrote it.
 
 Done means the outcome works where Nate will use it: his phone, the real app after restart or update, the real CLI, real data. Run the checks that can see the change fail, then the project's required checks (what it runs before merge); tests and simulators support his surface and never replace it. Never edit a test, fixture, snapshot or check to make it pass. When infrastructure misbehaves (pods, gateways, leases, credentials, caches), check it before changing code. If you could not prove something on his surface, say exactly that.
 

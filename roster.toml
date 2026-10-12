@@ -47,7 +47,8 @@ does = "re-fetches the pages cited by specific skill://research claims and retur
 agents = ["verifier"]
 
 # Agents. `model` must be an exact `omp models` selector. `family` decides cross-family reviews.
-# `thinking` is the default effort; a task item's `effort` overrides it. `note` is shown when
+# `thinking` is the default effort, never max: subagents top out at xhigh (`task.maxEffort`), and max is
+# for a main session Nate sets himself. A task item's `effort` overrides it. `note` is shown when
 # choosing an agent.
 
 [agents.opus]

@@ -1,6 +1,6 @@
 # nstack
 
-How Nate's software gets built, for omp sessions and for Dross's workers. Size the ask, pin the facts and decisions that change the result, show taste before building it, prove each slice on Nate's real surface, and delegate only when it pays. The evidence behind every rule is in [audit/REPORT.md](audit/REPORT.md).
+How Nate's software gets built, for omp sessions and for Dross's workers. Size the ask, pin the facts and decisions that change the result, design the simplest shape that meets every requirement, show taste before building it, prove each slice on Nate's real surface, and delegate only when it pays. The evidence behind every rule is in [audit/REPORT.md](audit/REPORT.md).
 
 ## Install
 
@@ -27,6 +27,8 @@ Then run `python3 install.py`. It refuses to write anything if a model isn't in 
 
 omp's own model roles stay Nate's settings, changed with `/model`: `default` is the main session's model, an unset `slow` uses `default`, and an unset `task` or `plan` keeps the session's own model. Install and `--check` print a WARN when one of those roles (or `advisor`, if enabled) names a model no roster agent uses, so a swap that leaves one behind shows up.
 
+Subagents top out at `xhigh` effort: `task.maxEffort: xhigh` caps a task's `effort: hi`, the roster refuses a `max` default, and install warns if the ceiling changes. `max` is for a main session Nate sets himself.
+
 ## Files
 
 | File | Installed as | Reaches |
@@ -43,7 +45,7 @@ omp's own model roles stay Nate's settings, changed with `/model`: `default` is 
 | `extensions/nstack-guard.ts` | omp extension | one-line reminders when a session's build subagents reach 6/12/24/48 (research and verifier lanes not counted) or its first 5-wide task call, and at 6/15/30/60 markdown files written; never blocks |
 | `audit/scripts/` | — | the extraction and metrics behind the report; `metrics.py --since <date>` measures sessions after a change; `research_scaling.py` measures what research lanes add |
 
-Context's contract (`apps/core/src/factory/context.contract.json`, `standards`) maps task types to these six skill names and embeds the whole `SKILL.md` in a 32k-token worker pack, so each skill stays self-contained and under 8,000 characters (about 2k tokens); `install.py --check` enforces both.
+Context's contract (`apps/core/src/factory/context.contract.json`, `standards`) maps task types to these six skill names and embeds the whole `SKILL.md` in a 32k-token worker pack, so each skill stays self-contained and under 9,000 characters (about 2.2k tokens); `install.py --check` enforces both.
 
 ## Credits
 
