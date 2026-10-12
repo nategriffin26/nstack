@@ -140,14 +140,18 @@ def main():
     out["sessions_with_review"] = sum(1 for x in per_root.values() if x["review"])
     out["research_lanes"] = sum(x["research"] for x in per_root.values())
     out["review_lanes"] = sum(x["review"] for x in per_root.values())
-    # the three numbers nstack is meant to move (baseline in audit/REPORT.md)
+    # the numbers nstack is meant to move (baseline in audit/REPORT.md); research and verifier lanes are
+    # cheap and their findings get used (research_scaling.py), so build fan-out is counted without them
     share = lambda part: round(part / (total or 1), 3)
+    build_subs = lambda x: x["subs"] - x["research"] - x["verify"]
     out["indicators"] = {
         "sessions": len(per_root),
         "spend": round(total, 2),
         "share_in_20plus_subagent_sessions": share(sum(x["cost"] for x in per_root.values() if x["subs"] >= 20)),
+        "share_in_20plus_build_subagent_sessions": share(sum(x["cost"] for x in per_root.values() if build_subs(x) >= 20)),
         "share_at_200k_plus_context": share(sum(c for r in rows for x, c in zip(r["ctx"], r["ccost"]) if x >= 200_000)),
         "share_in_subagents": share(sum(r["cost"] for r in rows if r["depth"] > 0)),
+        "share_in_research_and_verifier_lanes": share(sum(r["cost"] for r in rows if r["role"] in ("research", "verify"))),
     }
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     json.dump(out, open(out_path, "w"), indent=1)

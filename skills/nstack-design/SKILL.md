@@ -11,6 +11,7 @@ The beginning decides the trajectory. Nate's large and huge asks drew four to ei
 - Read the code and system the work touches. Name the data shapes, who owns each piece of state, and the seams (APIs, processes, devices, deploy and restart paths).
 - Check every load-bearing fact with a command: binary or repo actually used, versions, machine, hardware, data, model, where it runs, how it reaches Nate's surface. Write each one down with how you checked it.
 - For a rewrite, list the **keeps**: behaviors and invariants that must survive. Each keep becomes an executable check before the rewrite starts.
+- If the shape depends on outside evidence (prior art, vendors, models, standards), run one wide research wave through `skill://research`. Lanes cost cents and nearly every lane's findings reach the answer; the expensive part is your synthesis, so brief lanes on distinct questions rather than trimming them.
 
 ## 2. Settle forks
 - Observable forks (`[run]`): settle with the cheapest probe and a go/no-go number. Probes come before matrices, datasets, training runs and fan-out.
@@ -57,7 +58,7 @@ Log:
 The log is append-only. The ledger is the only plan or status file. No separate specs, matrices, roadmaps, status files per agent, or design docs unless Nate asks for one.
 
 ## 6. Do not
-- Run research or audit waves before the first question to Nate or before reading the code.
+- Start audit waves, or a research wave before reading the code or before Nate has picked a scope its lanes depend on.
 - Send a plan to reviewers. Review the prototype or the diff.
 - Write a spec longer than the shape.
 - Hand a worker a program. One brief is one slice, carrying the shape and the contracts it must honor.

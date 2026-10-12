@@ -16,6 +16,11 @@ const WIDE_BATCH = 5;
 const MD_STEPS = [6, 15, 30, 60];
 /** The nstack ledger is the one sanctioned status file. */
 const LEDGER_PATH = /(^|\/)local\/nstack\/|^local:\/\//;
+/**
+ * Research and verifier lanes are not counted: across Nate's 93 research runs a muse lane cost a median
+ * $0.03, and nearly every lane's sources reached the synthesis (audit/scripts/research_scaling.py).
+ */
+const RESEARCH_LANE = /^(researcher|verifier)/;
 
 type Counts = { tasks: number; wideWarned: boolean; md: Set<string> };
 const counts = new Map<string, Counts>();
@@ -32,7 +37,8 @@ export default function nstackGuard(pi: ExtensionAPI): void {
 			const input = event.input as Record<string, unknown>;
 
 			if (event.toolName === "task") {
-				const started = Array.isArray(input.tasks) ? input.tasks.length : 0;
+				const tasks = Array.isArray(input.tasks) ? (input.tasks as Array<{ agent?: unknown }>) : [];
+				const started = tasks.filter(t => !RESEARCH_LANE.test(String(t?.agent ?? ""))).length;
 				if (started === 0) return undefined;
 				const before = c.tasks;
 				c.tasks += started;
@@ -42,10 +48,10 @@ export default function nstackGuard(pi: ExtensionAPI): void {
 				if (firstWide) c.wideWarned = true;
 				return {
 					additionalContext:
-						`nstack: ${c.tasks} subagents started in this session (${started} in this call). ` +
+						`nstack: ${c.tasks} subagents started in this session (${started} in this call), research lanes not counted. ` +
 						"Fan-out repeats context and adds coordination, and Nate's 20+-subagent sessions scored lowest. " +
-						"Keep only disjoint slices with their own checks, bulk reading on a cheap model, one independent review, " +
-						"or research lanes on independent open questions; do the rest yourself. Nate's explicit requests stand.",
+						"Keep only disjoint slices with their own checks, bulk reading on a cheap model, or one independent review; " +
+						"do the rest yourself. Nate's explicit requests stand.",
 				};
 			}
 

@@ -40,11 +40,11 @@ Keep every explicit request and constraint, however casually phrased. Offhand re
 
 ## 5. Delegate only when it pays
 Fan-out repeats context and adds coordination (one measurement: 2.6 to 5.9 times the input tokens for the same work). Nate's sessions with 20 or more subagents took about 55% of his spend and scored lowest. Delegate only:
-1. bulk reading, extraction or summarizing, to a cheap model (muse), returning compressed results;
+1. bulk reading, extraction, summarizing or research lanes, to a cheap model (muse), returning compressed results;
 2. a slice with disjoint files and its own check, to one owner with a fresh context;
 3. one independent review of a prototype or diff that is a one-way door, risky (security, data loss, money, migration), or requested, by a different model family.
 
-Never: two writers on the same files, reviews of reviews, QA or simulator sweeps beyond the slice's check, research waves for what code, a quick run or one lookup can answer. An outside question during a build is a lookup you do yourself.
+Never: two writers on the same files, reviews of reviews, QA or simulator sweeps beyond the slice's check, research waves for what code, a quick run or one lookup can answer. A decision that needs outside evidence gets a wide wave through `skill://research`; lanes cost cents and nearly all get used.
 
 A brief carries the outcome, Nate's words, owned scope, the shape and contracts it must honor, keeps, the checks that define done (and an instruction to run them), facts already verified, and `Read skill://nstack`. Under a page. You own what comes back: inspect the diff or artifact yourself; never forward a summary.
 
