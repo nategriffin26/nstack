@@ -35,7 +35,7 @@ A number you report, compare or act on (a speedup, a latency, an eval or quality
 
 Verdict: better, worse, no measurable difference, or inconclusive, with the number, its unit, runs, range and limiter where they apply. Inconclusive when a side ran untuned or question 1 or 2 is open.
 
-Sustained work on one metric: first freeze a harness proven to tell the bad case from the good, with a baseline and the regression checks green. Then one change per measurement: keep it only if it beats the spread with the checks green, revert it otherwise, and log every attempt (hypothesis, before, after, kept or reverted) in the ledger. Re-measure the combination of kept changes. Stop at the target, never by relaxing it.
+Sustained work on one metric: first freeze a harness proven to tell the bad case from the good, with a baseline and the regression checks green. Then one change per measurement: keep it only if it beats the spread with the checks green, revert it otherwise, and log every attempt (hypothesis, before, after, kept or reverted) in the ledger. Re-measure the combination of kept changes. A run of many hours schedules fork-and-flush rounds (`skill://nstack-agents`): one long run settles into one family of ideas. Stop at the target, never by relaxing it.
 
 ## Evidence
 Report each done-check with its proof: the command and the relevant output, the screenshot or file path, or the URL. Mark anything unproven as **not verified on <surface>** and name what would verify it. The first line of the report states whether every done-check holds.
