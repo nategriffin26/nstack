@@ -187,8 +187,8 @@ def dross_models(r):
     if taste != author:
         parts.append(f"{model(taste)} for taste-critical work")
     parts += [f"{model(systems)} for hard systems work",
-              f"{either(model(n) for n in roles['implementer']['agents'])} only for fully specified slices, "
-              "never research, review, design or taste"]
+              f"{either(model(n) for n in roles['implementer']['agents'])} for {roles['implementer']['title'].lower()} "
+              f"({roles['implementer']['does']})"]
     review = "; ".join(f"{either(authors)} work by {rev}" for rev, authors in reviewers(r).items())
     return (f"- Worker models, from Nate's roster (`~/Projects/nstack/roster.toml`; this overrides any other model list "
             f"in this file): {'; '.join(parts)}; anything else only when Nate names it. A review of a worker's change "

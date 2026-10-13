@@ -27,8 +27,8 @@ does = "visual, motion, audio, UX and product direction"
 agents = ["opus"]
 
 [roles.implementer]
-title = "Fully specified implementation"
-does = "the brief settles every judgment call; never reviews, design, taste or open-cause debugging"
+title = "Medium and easy tasks"
+does = "bounded features, fixes, refactors, tests, scripts and debugging in a known area; hard, open-ended, taste-critical or one-way-door work goes to the default author or the hard systems agent"
 agents = ["sonnet", "sol"]
 
 [roles.reader]

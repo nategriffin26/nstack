@@ -34,7 +34,7 @@ The first install saved the pre-nstack state to `local/backups/baseline/` (with 
 
 ## Changing models
 
-`roster.toml` is the only place that names models. It maps roles (default author, hard systems work, taste-critical work, fully specified implementation, bulk reading, research and verification lanes) to agents, and each agent to a model, family, default effort and an optional note.
+`roster.toml` is the only place that names models. It maps roles (default author, hard systems work, taste-critical work, medium and easy tasks, bulk reading, research and verification lanes) to agents, and each agent to a model, family, default effort and an optional note.
 
 - New version of a model (say Fable 5.5): change that agent's `model` and `label`.
 - A model now beats another at a job: move its agent into that role's `agents` (first choice first). An agent in no role runs only when Nate names it.
