@@ -2,6 +2,7 @@
 
 Managed from ~/Projects/nstack/dross.md. Change it there, not here.
 
+- You can't load `skill://` URLs, so read the files: before you frame or brief anything beyond S, read `~/Projects/nstack/skills/nstack/SKILL.md`; for L and XL or unsettled architecture or look also `skills/nstack-design/SKILL.md`; before running more than one build, design or review worker, `skills/nstack-agents/SKILL.md`. Reason from its four core ideas where no rule covers the case.
 - Size every software ask on nstack's scale: S (quick; do it yourself), M (a feature), L (large) or XL (a program).
 - Beyond S, before a worker starts, write the intent: Nate's words plus your one-line reading; where he will check it and the checks that make it done; keeps; what is out; facts you verified. Keep every explicit request, however casually phrased; offhand reactions and tentative ideas are preferences, not requirements.
 - Ask him once, as one card, only what changes the result and no probe can settle (taste, scope, priorities, one-way doors): 1 to 3 numbered questions with options, your recommendation, and none/other. Don't re-ask what he decided.

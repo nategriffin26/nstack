@@ -13,8 +13,8 @@ What it manages:
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
   ~/.omp/agent/AGENTS.md                  the "Subagent routing" section, generated from roster.toml
   ~/.omp/agent/RULES.md                   marked block from omp-rules.md (always applied by omp)
-  $CONTEXT_HOME/home/AGENTS.md            marked block from dross.md, with the roster's worker models (Context's home:
-                                          CONTEXT_HOME, else ~/.context-next, as in its apps/core/src/config.ts)
+  $DROSS_HOME/home/AGENTS.md              marked block from dross.md, with the roster's worker models (Context's live home:
+                                          DROSS_HOME, else ~/.context-dross, as LIVE_HOME in its apps/dross/src/config.ts)
 
 roster.toml is the only place that names models; change it and rerun this script.
 Before the first install changes anything, every managed path is copied to local/backups/baseline/
@@ -33,7 +33,7 @@ AGENT_DIR = OMP / "agents"
 EXTENSION = OMP / "extensions" / "nstack-guard.ts"
 RULES = OMP / "RULES.md"
 OMP_AGENTS = OMP / "AGENTS.md"
-DROSS_AGENTS = Path(os.environ.get("CONTEXT_HOME") or HOME / ".context-next").resolve() / "home" / "AGENTS.md"
+DROSS_AGENTS = Path(os.environ.get("DROSS_HOME") or HOME / ".context-dross").resolve() / "home" / "AGENTS.md"
 CONTRACTS = [HOME / "Projects/context-wt/next/apps/core/src/factory/context.contract.json",
              HOME / "Projects/context/apps/core/src/factory/context.contract.json"]
 BACKUPS = REPO / "local" / "backups"
