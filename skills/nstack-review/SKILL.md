@@ -1,7 +1,6 @@
 ---
 name: nstack-review
-description: An independent review of a diff or prototype, with findings proven by failing cases. Use when reviewing work for Nate, when asked to review or audit a change, or as a cross-family critic on a large, risky or one-way-door change.
-disable-model-invocation: true
+description: An independent review of a diff, PR or prototype, with every finding proven by a failing case. Read when asked to review or audit a change, and when acting as a critic on another agent's work.
 ---
 
 # nstack review

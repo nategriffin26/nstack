@@ -1,12 +1,11 @@
 ---
 name: nstack-verify
-description: Prove that work does what Nate asked, finished and on the surface where he will use it, with every check that can see a failure and none that can't, and vet any number before it is reported or acted on. Use when verifying a change, deciding what "done" needs, measuring speed, metrics or eval results, or for Dross verify tasks.
-disable-model-invocation: true
+description: Prove work is done where Nate will use it, and vet numbers before they count. Read before calling done when the proof needs more than the project's tests (a phone or Mac app, a deploy, a render, pipeline output or real data), before reporting or acting on a speed, metric, eval or cost number, and before building a repeatable verify script.
 ---
 
 # nstack verify
 
-Done means the outcome works where Nate will use it. A recurring correction in his logs is a reported fix that was not fixed on his phone, his app or his real data. Tests and simulators support the proof; they never replace it.
+Done means the outcome works where Nate will use it. A common false "done" is a fix that passes its tests and is still broken on his phone, his app or his real data: a check proves only what it can see. Tests and simulators support the proof; they never replace it.
 
 ## Pick the instrument that can see the failure
 1. **Cheap checks first**: typecheck and the targeted tests that can see the changed failure; before calling it done, the project's required checks (what it runs before merge), so nothing else broke.
@@ -22,7 +21,7 @@ Run every check that can see a failure in what changed or what it touches. Skip 
 ## Integrity
 - Never edit a test, fixture, snapshot, golden file or verifier to make it pass. Fix the product, or prove the check is wrong and change it on its own, saying so.
 - When a change touches tests and the code they judge together, say so in the report.
-- When something looks broken, rule out the observer first (your polling, a stale build, the wrong target, input or reference), then infrastructure (pods, gateways, leases, credentials, caches) and stale state (config, locks, a process needing restart), before changing code. Confirm what is actually running before diagnosing it.
+- When something looks broken, rule out the observer first (your polling, a stale build, the wrong target, input or reference), then stale state (caches, config, locks, a process needing restart) and infrastructure (pods, gateways, leases, credentials), before changing code. Confirm what is actually running before diagnosing it.
 - Watch long jobs by their progress and errors, not only their exit, so nothing fails silently.
 
 ## Numbers
@@ -35,7 +34,7 @@ A number you report, compare or act on (a speedup, a latency, an eval or quality
 
 Verdict: better, worse, no measurable difference, or inconclusive, with the number, its unit, runs, range and limiter where they apply. Inconclusive when a side ran untuned or question 1 or 2 is open.
 
-Sustained work on one metric: first freeze a harness proven to tell the bad case from the good, with a baseline and the regression checks green. Then one change per measurement: keep it only if it beats the spread with the checks green, revert it otherwise, and log every attempt (hypothesis, before, after, kept or reverted) in the ledger. Re-measure the combination of kept changes. A run of many hours schedules fork-and-flush rounds (`skill://nstack-agents`): one long run settles into one family of ideas. Stop at the target, never by relaxing it.
+Sustained work on one metric: first freeze a harness proven to tell the bad case from the good, with a baseline and the regression checks green. Then one change per measurement: keep it only if it beats the spread with the checks green, revert it otherwise, and log every attempt (hypothesis, before, after, kept or reverted) in the ledger. Re-measure the combination of kept changes. Stop at the target, never by relaxing it.
 
 ## Evidence
 Report each done-check with its proof: the command and the relevant output, the screenshot or file path, or the URL. Mark anything unproven as **not verified on <surface>** and name what would verify it. The first line of the report states whether every done-check holds.

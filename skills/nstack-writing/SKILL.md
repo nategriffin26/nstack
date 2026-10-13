@@ -1,7 +1,6 @@
 ---
 name: nstack-writing
-description: How replies, reports, catch-ups and docs read for Nate. Outcome first, plain words, decisions with recommendations, nothing he has to decode. Use for any report to Nate, for "catch me up" or "bro" requests, and for docs he asked for.
-disable-model-invocation: true
+description: How catch-ups, reports and docs read for Nate. Outcome first, plain words, decisions with recommendations, nothing he has to decode. Read when he asks to be caught up ("catch me up", "where are we", back after time away), when a report must carry decisions for him, and before writing a doc he asked for.
 ---
 
 # nstack writing

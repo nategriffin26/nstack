@@ -1,7 +1,6 @@
 ---
 name: nstack-teach
-description: Explain how something works or why it is built that way, grounded in the real code and system, plainly enough for Nate to decide with it. Use for "how does", "why", "explain", "teach me", and Dross teach tasks.
-disable-model-invocation: true
+description: Explain how something works or why it is built that way, grounded in the real code, history and system, plainly enough for Nate to decide with it. Read when he asks how something works, why it is built that way, or to explain or teach him something.
 ---
 
 # nstack teach
