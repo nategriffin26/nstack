@@ -63,7 +63,7 @@ Subagents top out at `xhigh` effort: `task.maxEffort: xhigh` caps a task's `effo
 | `extensions/nstack-guard.ts` | omp extension | one-line reminders, never blocking: a pointer to `skill://nstack-agents` the first time a session runs several build agents without a successful read of it, a note when a later call repeats a brief an earlier call spawned (race candidates spawned together are not flagged), a prompt to account for every agent at 12/24/48/96 build agents, and a note at 6/15/30/60 markdown files written |
 | `audit/scripts/` | — | the extraction and metrics behind the report; `metrics.py --since <date> [--until <date>]` measures the sessions in a window, including the control indicators (briefs spawned twice, subagents that never ran, build agents spawned by subagents); `research_scaling.py` measures what research lanes add |
 
-Context's contract (`apps/core/src/factory/context.contract.json`, `standards`) maps task types to six of these skills (`nstack-agents` is for whoever runs agents and is not mapped) and embeds the whole `SKILL.md` in a 32k-token worker pack, so each skill stays self-contained and under 12,000 characters (about 3k tokens, under a tenth of the pack); `install.py --check` enforces both. The limit is a pack-fit check, not a target.
+Dross's workers run omp with Nate's own setup, so the `omp-rules.md` block and the skills reach every worker, and Context opens each worker's first prompt with a line to read `skill://nstack` (the old `apps/core` contract and its 32k worker pack are gone since Context's rewrite to `apps/dross`). Keep each skill self-contained and under 12,000 characters (about 3k tokens); `install.py --check` enforces it.
 
 ## Credits
 
