@@ -52,7 +52,7 @@ Subagents top out at `xhigh` effort: `task.maxEffort: xhigh` caps a task's `effo
 | File | Installed as | Reaches |
 |---|---|---|
 | `omp-rules.md` | marked block in `~/.omp/agent/RULES.md` | every omp session and subagent, always |
-| `dross.md` | marked block in Context's home `AGENTS.md` (`$DROSS_HOME/home/AGENTS.md`, by default `~/.context-dross/home/AGENTS.md`) | Dross's main turn, from its next daily standing-orders capture |
+| `dross.md` | marked block in Context's home `AGENTS.md` (`$DROSS_HOME/home/AGENTS.md`, by default `~/.context-dross/home/AGENTS.md`) | Dross's main turn, read from disk on every turn |
 | `roster.toml` | `~/.omp/agent/agents/<name>.md` for every roster agent, the "Subagent routing" section of `~/.omp/agent/AGENTS.md`, the worker-model line in Dross's block | every omp session, every subagent, Dross |
 | `agents/*.md` | bodies of the generated agent files: `author.md` for builders (load `skill://nstack`; spawn only readers and research workers unless the brief grants more), `reader.md` for bulk readers (no spawning), `researcher.md` and `verifier.md` for research lanes | subagents |
 | `skills/nstack` | `skill://nstack` | any build; Context's `implement` workers |

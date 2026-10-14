@@ -32,6 +32,7 @@ Complete before short: the brief you would want to receive cold. A field you can
 - **Inputs**: the exact files, clips, datasets, revisions and upstream results it works from, pasted or pinned by path; workers cannot see their siblings, and "A is done" is not a handoff.
 - **Scope**: what it may write (files, state, resources) and must not touch; its own worktree, branch or output directory when others run beside it.
 - **Contract**: the shape and interfaces it must honor and the facts already verified.
+- **Decisions**: what you settled (approach, interfaces, data shapes, files, names, what counts as done) and what is left to the worker, all inside its own unit. Anything a sibling or a later unit depends on is settled before the spawn, by you, a probe or Nate; work whose shape is still open is a design, probe or race task whose result you decide before briefing builders. Workers that each settle a shared shape on their own build halves that do not fit.
 - **Standing**: Nate's current decisions that apply (models, providers, machines, picks, ways of working), from the ledger, in every spawn and re-spawn.
 - **Done**: the finish condition as checks that pass or fail, and the evidence it returns (command output, screenshot, file path, commit).
 - **Waits**: bounded. It never blocks indefinitely on another agent, a message or a job; when it cannot proceed, it reports what blocks it. There is no deadline on productive work.
