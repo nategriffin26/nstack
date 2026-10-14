@@ -9,6 +9,8 @@
 What it manages:
   ~/.omp/agent/skills/<name>              symlinks to skills/<name>; other nstack* skills are removed
   ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack, bro)
+  ~/.omp/agent/commands/<name>/index.ts   symlinks to commands/<name>/index.ts (improve), in a real directory because
+                                          omp skips symlinked command directories
   ~/.omp/agent/extensions/nstack-guard.ts symlink to extensions/nstack-guard.ts
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
   ~/.omp/agent/AGENTS.md                  the "Subagent routing" section, generated from roster.toml
@@ -265,6 +267,7 @@ def links():
     """(installed path, repo source) for every symlink nstack owns."""
     return ([(SKILLS / p.name, p) for p in sorted((REPO / "skills").iterdir()) if (p / "SKILL.md").is_file()]
             + [(COMMANDS / p.name, p) for p in sorted((REPO / "commands").glob("*.md"))]
+            + [(COMMANDS / p.parent.name / p.name, p) for p in sorted((REPO / "commands").glob("*/index.ts"))]
             + [(EXTENSION, REPO / "extensions" / "nstack-guard.ts")])
 
 
@@ -326,6 +329,8 @@ def uninstall(dross):
     for path, source in links():
         if path.is_symlink() and path.resolve() == source.resolve():
             path.unlink()
+            if path.parent.parent == COMMANDS and not any(path.parent.iterdir()):
+                path.parent.rmdir()
     for p in AGENT_DIR.glob("*.md"):
         if generated(p):
             p.unlink()
