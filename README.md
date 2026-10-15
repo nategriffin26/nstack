@@ -35,17 +35,15 @@ The first install saved the pre-nstack state to `local/backups/baseline/` (with 
 
 ## Changing models
 
-`roster.toml` is the only place that names models. It maps roles (default author, hard systems work, taste-critical work, medium and easy tasks, bulk reading, research and verification lanes) to agents, and each agent to a model, family, default effort and an optional note.
+Change models in **Context → Settings → Models**, or through Dross's `models` tool. One revisioned host policy owns the allowed-model list and one model/thinking choice for each Dross role, worker type and Mac model role. The page's Activity tab records who changed what and when. Reassign roles before disallowing a model they use.
 
-- New version of a model (say Fable 5.5): change that agent's `model` and `label`.
-- A model now beats another at a job: move its agent into that role's `agents` (first choice first). An agent in no role runs only when Nate names it.
-- New model family: add an `[agents.<name>]` entry and put it in a role.
+`roster.toml` remains the only file in this repository that names models, but it is a **generated input**, not a second settings store. Context writes it and the managed model fields of `~/.omp/agent/config.yml`, then runs `python3 install.py --no-dross`. Do not hand-edit those fields or the installed agent files. For isolated projections, `--roster <path>` selects another roster and `--catalog <path>` supplies a previously discovered native catalog.
 
-Then run `python3 install.py`. It refuses to write anything if a model isn't in omp's catalog (`omp models`), a default effort isn't one the model supports, or `config.yml` pins a different model for that agent in `task.agentModelOverrides`. Otherwise it regenerates the agent files, the "Subagent routing" section of `~/.omp/agent/AGENTS.md` (roles, cross-family reviewers, default efforts) and the worker-model line in Dross's block.
+Every roster type is enabled and uses its own saved model and thinking level. Astra is an ordinary type assigned Sol; Researcher uses Muse. The installer renders agent files and the “Subagent routing” section of `~/.omp/agent/AGENTS.md`, checking models and thinking against omp's catalog. Context always uses `--no-dross`, leaving Dross's home `AGENTS.md` alone.
 
-omp's own model roles stay Nate's settings, changed with `/model`: `default` is the main session's model, an unset `slow` uses `default`, and an unset `task` or `plan` keeps the session's own model. Install and `--check` print a WARN when one of those roles (or `advisor`, if enabled) names a model no roster agent uses, so a swap that leaves one behind shows up.
+Mac roles share the policy; optional roles can use Native default. An interactive `/model` pick changes that session, not the policy. Native omp's explicit per-call model can override its type assignment. New Context workers use the current assignment; running processes continue normally, and native child preflight reloads global settings as usual.
 
-Subagents top out at `xhigh` effort: `task.maxEffort: xhigh` caps a task's `effort: hi`, the roster refuses a `max` default, and install warns if the ceiling changes. `max` is for a main session Nate sets himself.
+Agent thinking choices use the levels that model offers, including `max` when supported. Native `task.maxEffort` separately caps a task's per-spawn `effort` hint; it does not restrict the saved model choice.
 
 ## Files
 

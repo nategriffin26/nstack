@@ -1,15 +1,4 @@
-# Nate's model roster: the only place that names models.
-#
-# To adopt a new model, change its `model` and `label` (or add an agent); to move work to a
-# better model, change a role's `agents`. Then run `python3 install.py`. It regenerates the agent
-# files in ~/.omp/agent/agents/, the "Subagent routing" section of ~/.omp/agent/AGENTS.md and the
-# worker-model line in Dross's nstack block, and `--check` verifies every model and thinking level
-# against omp's catalog (`omp models`).
-#
-# The main session's own model is not set here: use /model in omp (modelRoles.default).
-
-# Roles: which agents do which job, first choice first. An agent in no role runs only when Nate
-# names it. Readers, research and verify agents never author code.
+# Generated from Context Models Settings, revision 1.
 
 [roles.author]
 title = "Default author"
@@ -29,12 +18,12 @@ agents = ["opus"]
 [roles.implementer]
 title = "Medium and easy tasks"
 does = "bounded features, fixes, refactors, tests, scripts and debugging in a known area; hard, open-ended, taste-critical or one-way-door work goes to the default author or the hard systems agent"
-agents = ["sonnet", "sol"]
+agents = ["sonnet","sol"]
 
 [roles.reader]
 title = "Bulk reading"
 does = "extraction and summarizing of large logs, corpora or codebases; sourced, compressed results"
-agents = ["muse", "gemini"]
+agents = ["muse","gemini"]
 
 [roles.research]
 title = "Research lanes"
@@ -46,11 +35,6 @@ title = "Verification lanes"
 does = "re-fetches the pages cited by specific skill://research claims and returns CONFIRMED, CONTESTED, REFUTED or UNKNOWN per claim"
 agents = ["verifier"]
 
-# Agents. `model` must be an exact `omp models` selector. `family` decides cross-family reviews.
-# `thinking` is the default effort, never max: subagents top out at xhigh (`task.maxEffort`), and max is
-# for a main session Nate sets himself. A task item's `effort` overrides it. `note` is shown when
-# choosing an agent.
-
 [agents.opus]
 model = "anthropic/claude-opus-5-5"
 label = "Claude Opus 5.5"
@@ -58,8 +42,8 @@ family = "anthropic"
 thinking = "high"
 
 [agents.astra]
-model = "openai-codex/gpt-6-astra"
-label = "GPT-6 Astra"
+model = "openai-codex/gpt-6.1-sol"
+label = "GPT-6.1-Sol"
 family = "openai"
 thinking = "high"
 
@@ -72,7 +56,7 @@ note = "fast"
 
 [agents.sol]
 model = "openai-codex/gpt-6.1-sol"
-label = "GPT-6.1 Sol"
+label = "GPT-6.1-Sol"
 family = "openai"
 thinking = "high"
 note = "slower, and weaker on judgment than opus or astra"
@@ -86,7 +70,7 @@ note = "Opus 5.5 beats it today"
 
 [agents.muse]
 model = "openrouter/meta/muse-spark-1.3-contributor"
-label = "Muse Spark 1.3"
+label = "Muse Spark 1.3 Contributor"
 family = "meta"
 thinking = "medium"
 note = "near-free"
@@ -100,7 +84,7 @@ note = "cheap and fast"
 
 [agents.researcher]
 model = "openrouter/meta/muse-spark-1.3-contributor"
-label = "Muse Spark 1.3"
+label = "Muse Spark 1.3 Contributor"
 family = "meta"
 thinking = "high"
 
