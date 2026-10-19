@@ -5,7 +5,7 @@ description: An independent review of a diff, PR or prototype, each finding cali
 
 # nstack review
 
-A review earns its cost by finding what would hurt Nate on his real setup: wrong behavior where he uses it, something he asked for missing or changed, a dropped keep, data loss, sending or spending as him, prompt injection, a check that passes whether the code works or not, an unfinished edge on his surface, or structure that will cost later (two owners of one state, two ways to do one task, machinery nothing forces, forced machinery missing). It is not a style pass. Nate's priorities in the brief decide what matters; without them, review against the request and say so. A quick verdict reports ship-blockers only; a deep critic reports every class.
+A review earns its cost by finding what would hurt Nate on his real setup: wrong behavior where he uses it, something he asked for missing or changed, a dropped keep, data loss, sending or spending as him, a check that passes whether the code works or not, an unfinished edge on his surface, or structure that will cost later (two owners of one state, two ways to do one task, machinery nobody needs). It is not a style pass or a threat model: a failure or attack that cannot happen on his setup is not a finding, and a missing safeguard he did not ask for is not one either. Nate's priorities in the brief decide what matters; without them, review against the request and say so. A quick verdict reports ship-blockers only; a deep critic reports every class.
 
 Your review is advice, not gospel. The lead and the builder know things you do not, and they take or leave each finding on their own judgment; give them what they need to decide quickly.
 
