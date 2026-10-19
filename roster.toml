@@ -1,4 +1,4 @@
-# Generated from Context Models Settings, revision 1.
+# Generated from Context Models Settings, revision 3.
 
 [roles.author]
 title = "Default author"
@@ -39,33 +39,33 @@ agents = ["verifier"]
 model = "anthropic/claude-opus-5-5"
 label = "Claude Opus 5.5"
 family = "anthropic"
-thinking = "high"
+thinking = "medium"
 
 [agents.astra]
 model = "openai-codex/gpt-6.1-sol"
-label = "GPT-6.1-Sol"
+label = "GPT-6.1 Sol"
 family = "openai"
-thinking = "high"
+thinking = "medium"
 
 [agents.sonnet]
 model = "anthropic/claude-sonnet-5-5"
 label = "Claude Sonnet 5.5"
 family = "anthropic"
-thinking = "high"
+thinking = "medium"
 note = "fast"
 
 [agents.sol]
 model = "openai-codex/gpt-6.1-sol"
-label = "GPT-6.1-Sol"
+label = "GPT-6.1 Sol"
 family = "openai"
-thinking = "high"
+thinking = "medium"
 note = "slower, and weaker on judgment than opus or astra"
 
 [agents.fable]
 model = "anthropic/claude-fable-5-1"
 label = "Claude Fable 5.1"
 family = "anthropic"
-thinking = "high"
+thinking = "medium"
 note = "Opus 5.5 beats it today"
 
 [agents.muse]
