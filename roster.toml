@@ -1,4 +1,4 @@
-# Generated from Context Models Settings, revision 3.
+# Models (model, label, family, thinking) come from Dross Settings › Models; nstack owns the roles, notes and agent list.
 
 [roles.author]
 title = "Default author"

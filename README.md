@@ -34,13 +34,13 @@ The first install saved the pre-nstack state to `local/backups/baseline/` (with 
 
 ## Changing models
 
-Change models in **Context → Settings → Models**, or through Dross's `models` tool. One revisioned host policy owns the allowed-model list and one model/thinking choice for each Dross role, worker type and Mac model role. The page's Activity tab records who changed what and when. Reassign roles before disallowing a model they use.
+Change a roster agent's model and thinking in **Dross → Settings → Models** (Workers), or let Dross read them through its `models` tool. Dross also keeps each agent's allowed models there: the ones a bot may pass to `work_start` for that kind.
 
-`roster.toml` remains the only file in this repository that names models, but it is a **generated input**, not a second settings store. Context writes it and the managed model fields of `~/.omp/agent/config.yml`, then runs `python3 install.py --no-dross`. Do not hand-edit those fields or the installed agent files. For isolated projections, `--roster <path>` selects another roster and `--catalog <path>` supplies a previously discovered native catalog.
+`roster.toml` stays the only file in this repository that names models, and the owner of each agent's model and thinking. Dross rewrites an agent's `model`, `label`, `family` and `thinking` in place (roles, notes and the agent list are nstack's), sets `task.agentModelOverrides` in `~/.omp/agent/config.yml` to match, and runs `python3 install.py --no-dross`; a refused install puts both back. Do not hand-edit the installed agent files. For isolated projections, `--roster <path>` selects another roster and `--catalog <path>` supplies a previously discovered native catalog.
 
-Every roster type is enabled and uses its own saved model and thinking level. Astra is an ordinary type assigned Sol; Researcher uses Muse. The installer renders agent files and the “Subagent routing” section of `~/.omp/agent/AGENTS.md`, checking models and thinking against omp's catalog. Context always uses `--no-dross`, leaving Dross's home `AGENTS.md` alone.
+Every roster type is enabled and uses its own saved model and thinking level. Astra is an ordinary type assigned Sol; Researcher uses Muse. The installer renders agent files and the “Subagent routing” section of `~/.omp/agent/AGENTS.md`, checking models and thinking against omp's catalog.
 
-Mac roles share the policy; optional roles can use Native default. An interactive `/model` pick changes that session, not the policy. Native omp's explicit per-call model can override its type assignment. New Context workers use the current assignment; running processes continue normally, and native child preflight reloads global settings as usual.
+omp's own model roles (`modelRoles`: default, smol, tiny, vision, …) and `enabledModels` stay with omp's `/model`. Native omp's explicit per-call model can override its type assignment. New Dross workers use the current assignment; running processes continue normally, and native child preflight reloads global settings as usual.
 
 Agent thinking choices use the levels that model offers, including `max` when supported. Native `task.maxEffort` separately caps a task's per-spawn `effort` hint; it does not restrict the saved model choice.
 
