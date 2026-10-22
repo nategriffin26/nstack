@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Aggregate the per-session analyses (local/analysis/*.jsonl) with the extracted stats
-(local/digests/sessions.jsonl). Prints the tables cited in audit/REPORT.md and writes
+(local/digests/sessions.jsonl). Prints the tables cited in the audit report (local/audit/REPORT.md, private) and writes
 local/analysis/AGGREGATE.json. The current audit session (-Projects-nstack) is excluded.
 """
 import glob, json, os, re, statistics as st

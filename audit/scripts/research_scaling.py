@@ -5,7 +5,7 @@ Joins every research run on disk (lane dossiers, verifier verdicts, SYNTHESIS.md
 the omp session logs (each lane's model and cost, verifier cost, the orchestrator's cost from
 the first lane spawn to the synthesis write, Nate's first reply after it) and the tf.py ledger
 (pages each lane fetched). Writes local/analysis/RESEARCH-SCALING.json and prints the tables
-behind audit/REPORT.md.
+behind the audit report (local/audit/REPORT.md, private).
 """
 import glob, json, os, random, re, sqlite3, subprocess
 from collections import Counter, defaultdict

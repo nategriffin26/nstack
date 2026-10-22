@@ -5,7 +5,7 @@ Per assistant call: cost and context size (input + cache read + cache write).
 Per subagent file: the agent type that spawned it (matched by task name in the parent),
 its role (research / verify / review / build-or-other), cost, month.
 Per session file: build briefs it spawned more than once (exact text after whitespace folding).
-Writes local/digests/metrics.json and prints the tables used in audit/REPORT.md.
+Writes local/digests/metrics.json and prints the tables used in the audit report (local/audit/REPORT.md, private).
 `--since YYYY-MM-DD` keeps only root sessions started on or after that date and `--until YYYY-MM-DD` only
 those started before it (forks are still charged to their earliest session first); the output file name
 carries both.
