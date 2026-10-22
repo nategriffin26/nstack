@@ -17,19 +17,13 @@ Every rule follows from four ideas, and the skills tell agents to reason from th
 
 ## How a task runs
 
-```mermaid
-flowchart LR
-  ask([Ask]) --> size{Size it}
-  size -->|one sitting| build
-  size -->|bigger| frame[Frame: outcome, proof,<br/>keeps, facts, decisions]
-  frame --> decide[One batch of questions,<br/>or a grill on request]
-  decide --> shape[Simplest design;<br/>taste previewed first]
-  shape --> build[Build in slices]
-  build --> prove[Prove it where<br/>it is used]
-  prove --> report([Report])
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/task-flow-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/task-flow-light.svg">
+  <img alt="How a task runs: ask, size, frame, decide, design, build, prove, report. A one-sitting task goes straight from size to build. You answer one batch of questions and pick the look from real previews." src="docs/task-flow-light.svg" width="600">
+</picture>
 
-Small asks get done, proven and reported. Anything bigger gets a short frame first: the outcome in the person's words beside the agent's reading, where it will be checked, what must not change, the load-bearing facts (each checked with a command) and the open decisions. The agent asks once, with a recommended default for each question, and keeps working on everything that does not depend on the answer. New taste gets several real directions before anything is built at scale. Work lands in slices that each end in something visible, and done means it works on the real surface: the phone, the app after a restart, the real CLI, real data.
+Each question comes with a recommended default, and work that doesn't depend on the answer keeps moving while you think; `/nstack grill` trades the single batch for rounds when you want them. The frame's facts are checked with a command, never assumed. Done means it works where you'll use it: your phone, the app after a restart, the real CLI, real data.
 
 ## What's in it
 
