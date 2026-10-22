@@ -18,9 +18,9 @@ Every rule follows from four ideas, and the skills tell agents to reason from th
 ## How a task runs
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/task-flow-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="docs/task-flow-light.svg">
-  <img alt="How a task runs: ask, size, frame, decide, design, build, prove, report. A one-sitting task goes straight from size to build. You answer one batch of questions and pick the look from real previews." src="docs/task-flow-light.svg" width="600">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nategriffin26/nstack/master/docs/task-flow-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/nategriffin26/nstack/master/docs/task-flow-light.svg">
+  <img alt="How a task runs: ask, size, frame, decide, design, build, prove, report. A one-sitting task goes straight from size to build. You answer one batch of questions and pick the look from real previews." src="https://raw.githubusercontent.com/nategriffin26/nstack/master/docs/task-flow-light.svg" width="600">
 </picture>
 
 Each question comes with a recommended default, and work that doesn't depend on the answer keeps moving while you think; `/nstack grill` trades the single batch for rounds when you want them. The frame's facts are checked with a command, never assumed. Done means it works where you'll use it: your phone, the app after a restart, the real CLI, real data.
@@ -54,7 +54,7 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `/nstack verify` | Proves the current work on the real surface and checks any measured number |
 | `/nstack formal [area]` | Formally verifies the riskiest promise in the repo (or the named area) with a model checker or verifier; `formal maintain` brings an existing check back in line after the code moved |
 | `/nstack correct <mistake>` | For a mistake that keeps coming back: finds its past instances and fixes it in structure (architecture, a type, a check whose error names the fix), proven against a real past instance |
-| `/bro` | Re-explains the last reply plainly. `/bro catch me up` catches up; `/bro how/why <thing>` explains how or why something works, grounded in the code and its history |
+| `/catchup` | Catches you up: what needs you, what changed, what is still running. `/catchup how/why <thing>` explains how or why something works, grounded in the code and its history; `/catchup <what's unclear>` re-explains the last reply plainly |
 | `/improve <prompt>` | Before running a prompt: names who would be best at the task, what they would do that the prompt does not ask for, and an outside check that could prove the result wrong, then rewrites the prompt to ask for that |
 
 ## Asking well
@@ -64,7 +64,7 @@ Each question comes with a recommended default, and work that doesn't depend on 
 - For a bug, describe what you see rather than your theory of the cause, so the agent looks everywhere first.
 - Races between models and extra critics run only when you ask for them by name ("race opus and astra on this").
 - Anything you say explicitly overrides nstack: models, number of agents, skipping a preview.
-- Long work keeps one ledger at `local/nstack/<slug>.md` in the project; "continue <thing>" or `/bro catch me up` resumes from it.
+- Long work keeps one ledger at `local/nstack/<slug>.md` in the project; "continue <thing>" or `/catchup` resumes from it.
 
 ## Install
 

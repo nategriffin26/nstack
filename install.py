@@ -8,7 +8,7 @@
 
 What it manages:
   ~/.omp/agent/skills/<name>              symlinks to skills/<name>; other nstack* skills are removed
-  ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack, bro)
+  ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack, catchup)
   ~/.omp/agent/commands/<name>/index.ts   symlinks to commands/<name>/index.ts (improve), in a real directory because
                                           omp skips symlinked command directories
   ~/.omp/agent/extensions/nstack-guard.ts symlink to extensions/nstack-guard.ts
