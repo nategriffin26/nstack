@@ -22,10 +22,10 @@ Look at every screen or output the change touches, in each state, beside his pic
 
 ## Numbers
 Before a number decides anything:
-1. Did the work happen on the intended input? Count errors, skipped and cached work.
+1. Did the work happen on the intended input? Count errors, skipped and cached work; a speedup that comes with more errors is failing faster, not running faster.
 2. What else could it measure (the wrong input, a warm cache, a no-op, leakage)? Rule each out.
 3. For speed, name the limiter from a profile or counters, not from reading code.
-4. If it varies run to run and decides between close options, repeat both sides and report median and range; a gap inside the spread is no difference. A number that decides nothing needs only 1 and 2.
+4. If it varies run to run and decides between close options, repeat both sides and report median and range; a gap inside the spread is no difference, and a change made only for speed that shows none is reverted. A number that decides nothing needs only 1 and 2.
 5. State the end-to-end effect on what Nate waits on or sees.
 
 ## Evidence
