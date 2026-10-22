@@ -14,7 +14,7 @@ Your review is advice, not gospel. The lead and the builder know things you do n
 2. Check scope both ways: what was asked and is missing; what was added that nobody asked for.
 3. Run the narrowest scenario that can expose the changed behavior on the paths Nate uses; exercise restart, concurrency or failure only where the diff creates that path.
 4. For each finding, check its trigger on his setup (one user, his Mac, his phone, his data) and say how likely it is; look at his real data when that takes a minute.
-5. Check the checks: tests that pass with the feature removed, assertions that recompute the expected value, tests edited with the code they judge.
+5. Check the checks: tests that pass with the feature removed or a guard flipped, assertions that recompute the expected value, mocks of what the project owns, fakes that cannot fail, tests edited with the code they judge.
 
 ## Output
 First line: **ship** or **fix first**, and why in one sentence. Then one row per finding, most important first:
