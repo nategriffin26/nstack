@@ -4,7 +4,7 @@ How Nate's software gets built, for omp sessions and for Dross's workers. Size t
 
 ## Using it
 
-Nothing to invoke. A short floor of standing rules rides on every request in every omp session and subagent. The agent reads `skill://nstack` itself before features and multi-step work (it holds the process, including agents, reviews and reports), `skill://nstack-design` for new systems, rewrites and unsettled architecture or look, `skill://nstack-verify` when proof needs more than the project's tests or rests on a number, and `skill://nstack-review` when reviewing. Builder subagents start with nstack loaded, and Dross's workers read it from disk.
+Nothing to invoke. A short floor of standing rules rides on every request in every omp session and subagent. The agent reads `skill://nstack` itself before features and multi-step work (it holds the process, including agents, reviews and reports), `skill://nstack-design` for new systems, rewrites and unsettled architecture or look, `skill://nstack-verify` when proof needs more than the project's tests or rests on a number, `skill://nstack-review` when reviewing, and `skill://nstack-formal` only when Nate asks for formal verification. Builder subagents start with nstack loaded, and Dross's workers read it from disk.
 
 | Command | Does |
 |---|---|
@@ -12,6 +12,7 @@ Nothing to invoke. A short floor of standing rules rides on every request in eve
 | `/nstack shape <ask>` | requirements, architecture with what forces each part, slices and checks, plus one batch of questions; builds nothing |
 | `/nstack review` | reviews the current change against the ask, each finding with a failing case |
 | `/nstack verify` | proves the current work on the real surface with every check that can see a failure, and vets any measured number |
+| `/nstack formal [area]` | formally verifies the promise in the repo where a bug costs most and tests reach least (or the named area): a model checker or verifier, a counterexample for any bug in the code's words, and a project skill that reruns the check with one command; `/nstack formal maintain` brings an existing check back in line after code changes that skipped it |
 | `/nstack correct <mistake>` | for a mistake that keeps coming back: finds every past instance and fixes it in structure (architecture, a type, a check whose error names the fix), proven against a real past instance |
 | `/bro catch me up` | catches up on everything since the last message |
 | `/bro` | re-explains the last reply plainly; `/bro how/why <thing>` explains how or why something works, grounded in the code and its history |
@@ -38,7 +39,7 @@ Change a roster agent's model and thinking in **Dross → Settings → Models** 
 
 `roster.toml` stays the only file in this repository that names models, and the owner of each agent's model and thinking. Dross rewrites an agent's `model`, `label`, `family` and `thinking` in place (roles, notes and the agent list are nstack's), sets `task.agentModelOverrides` in `~/.omp/agent/config.yml` to match, and runs `python3 install.py --no-dross`; a refused install puts both back. Do not hand-edit the installed agent files. For isolated projections, `--roster <path>` selects another roster and `--catalog <path>` supplies a previously discovered native catalog.
 
-Every roster type is enabled and uses its own saved model and thinking level. Astra is an ordinary type assigned Sol; Researcher uses Muse. The installer renders agent files and the “Subagent routing” section of `~/.omp/agent/AGENTS.md`, checking models and thinking against omp's catalog.
+Every roster type is enabled and uses its own saved model and thinking level. Astra is an ordinary type assigned GPT-6 Astra; Researcher uses Muse. The installer renders agent files and the “Subagent routing” section of `~/.omp/agent/AGENTS.md`, checking models and thinking against omp's catalog.
 
 omp's own model roles (`modelRoles`: default, smol, tiny, vision, …) and `enabledModels` stay with omp's `/model`. Native omp's explicit per-call model can override its type assignment. New Dross workers use the current assignment; running processes continue normally, and native child preflight reloads global settings as usual.
 
@@ -55,7 +56,8 @@ Agent thinking choices use the levels that model offers, including `max` when su
 | `skills/nstack` | `skill://nstack` | any build: sizing, framing, decisions, agents, reviews, tests, reports |
 | `skills/nstack-design` | `skill://nstack-design` | rewrites, new systems, programs of features; `design` workers |
 | `skills/nstack-review`, `-verify` | `skill://…` | reviews and critic verdicts; proof beyond the project's tests and number vetting; `/nstack` modes |
-| `commands/nstack.md` | `/nstack <task> \| shape <ask> \| review \| verify \| correct <mistake>` | omp |
+| `skills/nstack-formal` | `skill://nstack-formal` | formal verification when Nate asks for it; `/nstack formal` |
+| `commands/nstack.md` | `/nstack <task> \| shape <ask> \| review \| verify \| formal [area \| maintain] \| correct <mistake>` | omp |
 | `commands/bro.md` | `/bro [catch me up]` | omp |
 | `commands/improve/index.ts` | `/improve <prompt>` (a TypeScript command, so the prompt arrives verbatim; markdown commands drop its quote marks) | omp |
 | `extensions/nstack-guard.ts` | omp extension | the rules prose did not hold in v3, as one-line notes where they fire: the lead writing to a critic that already reported (reviews close at their verdict) or a builder messaging one; a long brief to an agent that already exists, and "finish and report" to a subagent past 250K tokens of context; an `ask` while agents run (omp's `ask.timeout` bounds the wait itself); after compaction, a pointer back to the ledger and the skill |
@@ -65,4 +67,4 @@ Dross's workers run omp with Nate's own setup, so the `omp-rules.md` block and t
 
 ## Credits
 
-Built on ideas from [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan (MIT): the multi-agent control now in `skills/nstack` §4 (from its orchestrate, swarm and interrogate material), the measurement checks (benchmark-checklist, explain-the-number, hillclimb), the verify script (create-verification-skill), the debugging rules (bug-fix, attack-the-premise, fix-root-causes), the safety-fact review step (blast-radius) and `/nstack correct` (correct), each adapted to omp, Dross and Nate's logs. Also the no-process-porn skill from [helix](https://github.com/DocumentDrivenDX/helix).
+Built on ideas from [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan (MIT): the multi-agent control now in `skills/nstack` §4 (from its orchestrate, swarm and interrogate material), the measurement checks (benchmark-checklist, explain-the-number, hillclimb), the verify script (create-verification-skill), the debugging rules (bug-fix, attack-the-premise, fix-root-causes), the safety-fact review step (blast-radius), `/nstack correct` (correct) and `skills/nstack-formal` (create- and maintain-formal-verification-skill, pstack 0.15.29), each adapted to omp, Dross and Nate's logs. Also the no-process-porn skill from [helix](https://github.com/DocumentDrivenDX/helix). The attack-first test rules in `skills/nstack` §5, the floor's test line and the review's check-the-checks step adapt [go-test-hardening](https://github.com/codetesla51/skills/tree/main/go-test-hardening) (contract-first expectations, bug-named tests, red first, hand mutation, real dependencies and failing fakes), language-neutral and without its per-test notes file.
