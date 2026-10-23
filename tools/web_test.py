@@ -211,6 +211,23 @@ class ReadFallback(WebCase):
         self.assertNotIn("| via store ", p.stdout)
         self.assertGreater(len(fake.requests), seen)
 
+    def test_javascript_stub_from_tinyfish_is_replaced_by_exa_text(self):
+        """Bug: TinyFish returns a ~150-char JavaScript stub, it is logged as an ok
+        read, and Exa (which has the real page) is never asked."""
+        stub = "You need to enable JavaScript to run this app. " * 3
+        a, b = "https://spa.example/a", "https://spa.example/b"
+        tinyfish = {"results": [{"url": a, "text": stub}, {"url": b, "text": stub}], "errors": []}
+        exa = {"results": [{"id": a, "url": a, "title": "A", "text": "the real page " * 40}],
+               "statuses": [{"id": a, "status": "success"}]}
+        self.serve({"/tf-fetch": (200, tinyfish), "/exa/contents": (200, exa)})
+        p = self.web("read", a, b, "--no-archive", "--lane", "t")
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        headers = [line for line in p.stdout.splitlines() if line.startswith("=====")]
+        self.assertTrue(headers[0].startswith(f"===== {a} ") and headers[0].endswith("| via exa ====="), headers)
+        self.assertTrue(headers[1].startswith(f"===== {b} ") and headers[1].endswith("| via tinyfish ====="), headers)
+        ok = self.db().execute("SELECT url, chars FROM pages WHERE status='ok' ORDER BY url").fetchall()
+        self.assertEqual(ok, [(a, len("the real page " * 40)), (b, len(stub))])
+
     def test_tinyfish_auth_failure_still_reads_via_exa(self):
         """Bug: a TinyFish 401 aborts the read before Exa is tried."""
         self.serve({"/tf-fetch": (401, {"error": "Invalid API key"}), "/exa/contents": (200, EXA_CONTENTS)})
@@ -255,9 +272,9 @@ class LaneScoping(WebCase):
                 fh.write(text)
         return run
 
-    def add_page(self, db: sqlite3.Connection, lane: str, url: str, ts: float) -> None:
+    def add_page(self, db: sqlite3.Connection, lane: str, url: str, ts: float, chars: int = 5000) -> None:
         db.execute("INSERT INTO pages VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                   (ts, lane, "/", url, None, "t", 100, "ok", None, None, "fetch"))
+                   (ts, lane, "/", url, None, "t", chars, "ok", None, None, "fetch"))
 
     def unfetched(self, out: str) -> list[str]:
         return [line.split()[2] for line in out.splitlines() if line.startswith("FAIL UNFETCHED_CITATION")]
@@ -303,6 +320,23 @@ class LaneScoping(WebCase):
         p = self.web("check", os.path.join(run, "CounterThesis.json"))
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertEqual(self.unfetched(p.stdout), [self.OLD, self.NEW])
+
+    def test_note_sources_must_be_one_url_per_number(self):
+        """Bug: a Dig note passes with a Sources entry that has no URL, one URL
+        under two numbers, and text after a URL."""
+        db = self.db()
+        run = self.make_run({"NOTE.md": "# Q\nDig · as of 2026-10-23 · new-run-2026-10\n"
+                                        "A [1] B [2] C [3] D [4].\n## Sources\n"
+                                        f"[1] A · {self.NEW}\n"
+                                        f"[2] Same page again · {self.NEW}\n"
+                                        "[3] Passage in [1], no link\n"
+                                        f"[4] D · {self.NEW}/d (see section 2)\n"})
+        self.add_page(db, "new-run-2026-10/dig", self.NEW, time.time() + 5)
+        self.add_page(db, "new-run-2026-10/dig", self.NEW + "/d", time.time() + 5)
+        p = self.web("check", run)
+        fails = sorted(line.split()[1] + " " + line.split()[2]
+                       for line in p.stdout.splitlines() if line.startswith("FAIL"))
+        self.assertEqual(fails, ["DUPLICATE_SOURCE [2]", "NO_SOURCE_URL [3]", "TEXT_AFTER_URL [4]"], p.stdout)
 
     def test_citation_query_must_match_the_read(self):
         """Bug: a read of ?id=A passes a citation of ?id=B (queries dropped);

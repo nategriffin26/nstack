@@ -63,6 +63,8 @@ DIGEST_HARD_LIMIT = 50000   # the harness elides output above this
 MAX_SELECTORS = 20
 SNIPPET_CHARS = 320         # keeps a 10-result search near 5k chars
 STORE_MAX_AGE = 24 * 3600   # older stored copies are read again (prices, versions, thin reads)
+THIN_CHARS = 200            # a TinyFish read this short is often a JS stub: Exa is asked too
+THIN_PAGE_CHARS = 500       # check warns on a citation whose best read is shorter
 
 # TinyFish's published per-key ceilings (30 searches, 150 fetched URLs a
 # minute), minus one slot of slack for clock jitter between our window and theirs.
@@ -1087,9 +1089,17 @@ def run_read(a: argparse.Namespace) -> int:
             live.append(u)
     payload, pending = fetch_urls(live, a) if live else ({"results": [], "errors": []}, [])
     errors = payload["errors"]
-    retry = [e["url"] for e in errors if e.get("url")] + pending
+    # A TinyFish result under THIN_CHARS is often a JavaScript stub: ask Exa too, keep the longer.
+    thin = {r["url"]: r for r in payload["results"]
+            if r.get("url") and len(page_text(r).strip()) < THIN_CHARS}
+    retry = [e["url"] for e in errors if e.get("url")] + pending + list(thin)
     if retry and a.format == "markdown":
         got = exa_read(retry, a.fresh)
+        for u, r in thin.items():
+            if u in got and len(got[u]["text"].strip()) > len(page_text(r).strip()):
+                payload["results"][payload["results"].index(r)] = got.pop(u)
+            else:
+                got.pop(u, None)
         for e in errors:
             if e.get("url") in got:
                 e["recovered"] = "exa"
@@ -1392,6 +1402,11 @@ def check_dossier(path: str, explicit_lane: str | None = None) -> dict:
     rows = LEDGER.pages(lane, since)
     log = distinct_pages(rows)
     logged_keys = {cite_key(p["url"]) for p in log if p["status"] == "ok"}
+    best_chars: dict[str, int] = {}
+    for r in rows:
+        if r["status"] == "ok":
+            k = cite_key(r["url"] or "")
+            best_chars[k] = max(best_chars.get(k, 0), r["chars"] or 0)
     failed_keys = {cite_key(p["url"]) for p in log if p["status"] != "ok"}
     # Reads made without a lane land under 'unknown'; they still prove a read
     # through web happened, so they downgrade the citation flag to WARN.
@@ -1434,6 +1449,8 @@ def check_dossier(path: str, explicit_lane: str | None = None) -> dict:
                 return
             extra = " (read failed)" if k in failed_keys else ""
             flags.append(("FAIL", "UNFETCHED_CITATION", f"{url}{extra} ({where}, readDepth {depth})"))
+        elif best_chars.get(k, 0) < THIN_PAGE_CHARS:
+            flags.append(("WARN", "THIN_PAGE", f"{url} ({best_chars.get(k, 0)} chars; {where})"))
 
     def quote_check(datum: str, urls: list[str], where: str) -> None:
         if not isinstance(datum, str) or len(datum) < 30:
@@ -1563,14 +1580,30 @@ def _urls_in_text(text: str) -> list[str]:
 
 
 def note_flags(text: str) -> list[tuple[str, str, str]]:
-    """A Dig note cites [n] in its answer and lists each n under ## Sources."""
+    """A Dig note cites [n] in its answer and lists each n under ## Sources as
+    `[n] title · url`: one URL per number, nothing after it, no URL twice."""
     body, head, rest = text.partition("\n## Sources")
     if not head:
         return [("FAIL", "NO_SOURCES", "no ## Sources section")]
     sources = re.split(r"\n## ", rest, maxsplit=1)[0]
-    listed = set(re.findall(r"^\s*\[(\d+)\]", sources, re.M))
+    flags: list[tuple[str, str, str]] = []
+    listed: set[str] = set()
+    first: dict[str, str] = {}
+    for n, entry in re.findall(r"^\s*\[(\d+)\](.*)$", sources, re.M):
+        listed.add(n)
+        m = re.search(r"https?://\S+", entry)
+        if not m:
+            flags.append(("FAIL", "NO_SOURCE_URL", f"[{n}] has no URL: {entry.strip()[:80]}"))
+            continue
+        url = m.group(0).rstrip(".,;")
+        if entry[m.end():].strip(" .,;"):
+            flags.append(("FAIL", "TEXT_AFTER_URL", f"[{n}] has text after its URL: {entry[m.end():].strip()[:60]}"))
+        k = cite_key(url)
+        if k in first:
+            flags.append(("FAIL", "DUPLICATE_SOURCE", f"[{n}] repeats the URL of [{first[k]}]: {url}"))
+        first.setdefault(k, n)
     cited = sorted(set(re.findall(r"\[(\d+)\]", body)) - listed, key=int)
-    return [("FAIL", "MISSING_SOURCE", f"[{n}] cited but not listed under ## Sources") for n in cited]
+    return flags + [("FAIL", "MISSING_SOURCE", f"[{n}] cited but not listed under ## Sources") for n in cited]
 
 
 def run_lane_names(run_dir: str) -> set[str]:
@@ -1610,9 +1643,9 @@ def check_docs(files: list[str], run_dir: str | None, explicit: str | None) -> i
         def in_run(lane: str, ts: float) -> bool:
             return (lane == explicit or lane.startswith(slug + "/")
                     or (lane in bare and ts >= start))
-    by_key: dict[str, list[tuple[str, float]]] = {}
-    for p in LEDGER.db.execute("SELECT url, lane, ts FROM pages WHERE status='ok' AND url IS NOT NULL"):
-        by_key.setdefault(cite_key(p["url"]), []).append((p["lane"], p["ts"]))
+    by_key: dict[str, list[tuple[str, float, int]]] = {}
+    for p in LEDGER.db.execute("SELECT url, lane, ts, chars FROM pages WHERE status='ok' AND url IS NOT NULL"):
+        by_key.setdefault(cite_key(p["url"]), []).append((p["lane"], p["ts"], p["chars"] or 0))
     matched = via_repo = skipped = 0
     for u in urls:
         if is_x_url(u):
@@ -1633,13 +1666,16 @@ def check_docs(files: list[str], run_dir: str | None, explicit: str | None) -> i
             near = [k for k in by_key if k.split("/")[0] == host][:3]
             hint = f"; pages read on that host: {', '.join(near)}" if near else ""
             flags.append(("FAIL", "UNFETCHED_URL", f"{u} never read through web{hint}"))
-        elif in_run is not None and not any(in_run(lane, ts) for lane, ts in reads):
-            lanes = sorted({lane for lane, _ in reads})
+        elif in_run is not None and not any(in_run(lane, ts) for lane, ts, _ in reads):
+            lanes = sorted({lane for lane, _, _ in reads})
             flags.append(("WARN", "OTHER_RUN_URL",
                           f"{u} read only by other runs (lanes {', '.join(lanes[:5])})"))
         else:
             matched += 1
             via_repo += repo
+            best = max(c for lane, ts, c in reads if in_run is None or in_run(lane, ts))
+            if not repo and best < THIN_PAGE_CHARS:
+                flags.append(("WARN", "THIN_PAGE", f"{u} ({best} chars)"))
     for lvl, code, detail in flags:
         print(f"{lvl} {code} {detail}")
     n_fail = sum(1 for f in flags if f[0] == "FAIL")

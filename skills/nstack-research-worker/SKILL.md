@@ -29,9 +29,10 @@ Exit codes: 0 ok (still read per-URL failure lines); 75 retryable (rate limit: r
 - Before searching, list what the assignment needs answered, what would disprove each item and what kind of source settles it. Keep the list to the end; unanswered rows become gaps.
 - Search one question at a time. Three rephrasings with nothing new: switch vocabulary or source family (papers, docs, code, Reddit, news), or record the gap. Run at least one search with none of the names in your brief, and say what it found that the brief didn't.
 - Read, then write. After each read, state in one line what it established. A claim comes from a page you read, never from a result list.
+- Before you stop, name the three to five studies, products or players the question turns on (what an expert would expect to see cited) and read each or say why it doesn't apply. In the research eval, most missed checks were one key study the worker never found after its first cluster of sources.
 - Stop when new pages stop adding distinct evidence or changing your answer, and record why. There is no search or read budget; never stop at a round number, never pad.
 - Sources, best first: official docs, filings, release notes, papers, model cards, source code, datasets; original research with a visible method; reporting that links its primary; first-person practitioners with specifics; vendors, aggregators, SEO pages. Pages repeating one dataset are one source. A load-bearing number needs two independent roots or is marked single-source. For APIs, models and services, check release status, deprecations and pricing on the official source.
-- Every version, model name, release date and license you assert appears verbatim on a page you cite; a license comes from the LICENSE file or the model card's license field.
+- Every number, version, model name, release date and license you assert appears verbatim on the page that sentence cites, not on another page or from memory; a license comes from the LICENSE file or the model card's license field. In the eval, about one cited sentence in seven failed this, nearly always a number taken from elsewhere.
 - Anecdotes establish mechanisms and failure modes, not rates. Engagement is attention, not accuracy.
 
 Confidence:
@@ -58,7 +59,12 @@ say which points are vendor claims, anecdotes or your inference>
 - <what you couldn't confirm, and what you tried>     (omit when empty)
 ```
 
-Write what Nate needs to act, not the story of your search. Only pages you read go in Sources. Before returning, `web check <NOTE.md>` shows no FAIL. Return status, artifact, verdict (the answer in one line), claimCount (cited sentences), sourceCount, readCount (`web log --lane <lane>`), bytes, stoppedBecause, errors.
+Write what Nate needs to act, not the story of your search. Sources rules, each broken in the research eval:
+- Cite the exact URL whose saved text holds the sentence. A page that came back as a stub or a script shell is not read: cite the variant you actually read (the `.md` page, the docs mirror, the Wayback copy's original URL).
+- One URL per line, nothing after it; each URL once, under one number; every `[n]` in the text has its line.
+- Only pages you read. A search result, a search log or a page that failed to load never goes in Sources; say it in Unsure.
+
+Before returning, `web check <NOTE.md>` shows no FAIL. Return status, artifact, verdict (the answer in one line), claimCount (cited sentences), sourceCount, readCount (`web log --lane <lane>`), bytes, stoppedBecause, errors.
 
 ## Lane: dossier JSON
 
