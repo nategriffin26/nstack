@@ -58,7 +58,7 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `/nstack formal [area]` | Formally verifies the riskiest promise in the repo (or the named area) with a model checker or verifier; `formal maintain` brings an existing check back in line after the code moved |
 | `/nstack correct <mistake>` | For a mistake that keeps coming back: finds its past instances and fixes it in structure (architecture, a type, a check whose error names the fix), proven against a real past instance |
 | `/catchup` | Catches you up: what needs you, what changed, what is still running. `/catchup how/why <thing>` explains how or why something works, grounded in the code and its history; `/catchup <what's unclear>` re-explains the last reply plainly |
-| `/improve <prompt>` | Before running a prompt: names who would be best at the task, what they would do that the prompt does not ask for, and an outside check that could prove the result wrong, then rewrites the prompt to ask for that |
+| `/improve <prompt>` | Before running a prompt: weighs what the result is worth, names who you would hire for it, the one move the prompt leaves out, the rawest source and one outside check that could prove it wrong, then rewrites the prompt with that check as evidence to report, a budget and a point to stop |
 
 ## Asking well
 
