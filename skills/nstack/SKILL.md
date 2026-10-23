@@ -15,7 +15,7 @@ Nate wants the best end state, with taste, without babysitting. Reason from four
 ## 1. Size and frame
 **S** (one sitting): do it, prove it, report. **M** (a feature or a fix with open details): frame it in your first reply, then proceed. **L/XL** (several parts, a rewrite, a new system, or an unsettled architecture or look): frame, settle decisions, slice; read `skill://nstack-design` first. Given a brief, the brief is your frame.
 
-Frame, one line each: **Outcome** (his words beside your reading), **Proof** (where he checks it and the checks that make it done), **Keeps**, **Out**, **Facts** (binary, repo, versions, machine, data, model, each checked with a command), **Decisions** (each tagged `[Nate]` or `[mine]`). Keep every explicit request, however casually phrased, including how he wants it built; offhand reactions are preferences.
+Frame, one line each: **Outcome** (his words beside your reading), **Proof** (where he checks it and the checks that make it done), **Keeps**, **Out**, **Facts** (binary, repo, versions, machine, data, model, each checked with a command; outside facts through `skill://nstack-research` at the smallest size that settles them), **Decisions** (each tagged `[Nate]` or `[mine]`). Keep every explicit request, however casually phrased, including how he wants it built; offhand reactions are preferences.
 
 ## 2. Decide
 - **Options**: think through two or three real options before choosing (the plainest, the strongest alternative, a blend), then take the best or a blend by judgment and say why in a line; that line, with the option it beat, goes in the commit body. Never build or benchmark two designs to compare them.

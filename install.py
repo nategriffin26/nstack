@@ -12,6 +12,7 @@ What it manages:
   ~/.omp/agent/commands/<name>/index.ts   symlinks to commands/<name>/index.ts (improve), in a real directory because
                                           omp skips symlinked command directories
   ~/.omp/agent/extensions/nstack-guard.ts symlink to extensions/nstack-guard.ts
+  ~/.local/bin/web                        symlink to tools/web.py, the research tool the research skills call
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
   ~/.omp/agent/AGENTS.md                  the "Subagent routing" section, generated from roster.toml
   ~/.omp/agent/RULES.md                   marked block from omp-rules.md (always applied by omp)
@@ -37,6 +38,7 @@ AGENT_DIR = OMP / "agents"
 EXTENSION = OMP / "extensions" / "nstack-guard.ts"
 RULES = OMP / "RULES.md"
 OMP_AGENTS = OMP / "AGENTS.md"
+LOCAL_BIN = HOME / ".local" / "bin"
 DROSS_AGENTS = Path(os.environ.get("DROSS_HOME") or HOME / ".context-dross").resolve() / "home" / "AGENTS.md"
 CONTRACTS = [HOME / "Projects/context-wt/next/apps/core/src/factory/context.contract.json",
              HOME / "Projects/context/apps/core/src/factory/context.contract.json"]
@@ -163,7 +165,7 @@ def routing(r):
     lines += ["",
               "Authors (every agent except the readers, research and verify agents) load `skill://nstack` and delegate "
               "only to the readers and research lanes unless their brief grants more; research and verification lanes "
-              f"run only through `skill://research`. Reviews come from another family: {pairs}. Effort comes from the "
+              f"run only through `skill://nstack-research`. Reviews come from another family: {pairs}. Effort comes from the "
               f"roster ({defaults}) and Nate's words."]
     return "\n".join(lines)
 
@@ -239,7 +241,8 @@ def links():
     return ([(SKILLS / p.name, p) for p in sorted((REPO / "skills").iterdir()) if (p / "SKILL.md").is_file()]
             + [(COMMANDS / p.name, p) for p in sorted((REPO / "commands").glob("*.md"))]
             + [(COMMANDS / p.parent.name / p.name, p) for p in sorted((REPO / "commands").glob("*/index.ts"))]
-            + [(EXTENSION, REPO / "extensions" / "nstack-guard.ts")])
+            + [(EXTENSION, REPO / "extensions" / "nstack-guard.ts")]
+            + [(LOCAL_BIN / "web", REPO / "tools" / "web.py")])
 
 
 def generated(path):

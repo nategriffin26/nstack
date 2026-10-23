@@ -11,7 +11,7 @@ Most of what goes wrong in a big build is set before the first line of code: a f
 - Read the code and system the work touches: data shapes, who owns each piece of state, the seams (APIs, processes, devices, deploy and restart paths).
 - Requirements: what it must do and the numbers that matter. Tag each **Nate** (he asked), **forced** (it cannot work at all on his setup without it) or **wish**. A wish gets nothing now; list it under Out.
 - Check every load-bearing fact with a command and write down how. For a rewrite, list the keeps; each becomes an executable check (golden outputs, conformance cases, recorded behavior) before the rewrite starts.
-- Outside evidence: one wide research wave through `skill://research`, after the code is read and any scope Nate must pick is pinned.
+- Outside evidence: one Wave through `skill://nstack-research`, after the code is read and any scope Nate must pick is pinned.
 
 ## 2. Architecture
 The goal is the simplest architecture that does what Nate asked, well. Simple wins: it is quick to build, easy to read, and can be extended when a real need shows up. Nothing here requires a feature, safeguard or mechanism; every part of the design traces to something he asked for or something it cannot work without.

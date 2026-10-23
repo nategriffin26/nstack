@@ -35,6 +35,9 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `skills/nstack-verify` | when proof needs more than the tests, or a number decides something | Proof on the real surface; checks a number before it counts |
 | `skills/nstack-review` | reviews and critic verdicts | Findings judged by how likely and how harmful they are on the real setup |
 | `skills/nstack-grill` | only when asked | Rounds of questions to get on the same page before work starts |
+| `skills/nstack-research` | whenever outside facts are needed | Sizes the work as a Look up, a Dig (one agent, a short cited note) or a Wave (research lanes, verification, a synthesis), checks earlier research first and saves what it finds |
+| `skills/nstack-research-worker` | autoloaded into the `researcher` and `verifier` agents | Their field guide: how to search and read, the note, dossier and verification formats, confidence rules |
+| `tools/web.py` | on PATH as `web` | Search (Exa, falling back to TinyFish), read (TinyFish, then Exa, then Wayback), GitHub and Reddit readers, a page store and a log that `web check` holds every citation to; `web mcp` serves search and read over MCP |
 | `skills/nstack-formal` | only when asked | Formal verification of the promise where a bug costs most, left behind as a check that reruns with one command |
 | `commands/` | when typed | The slash commands below |
 | `extensions/nstack-guard.ts` | always, as an omp extension | One-line notes at the moments the written rules did not hold: writing to a critic that already gave its verdict, a long brief to an agent that already exists, a subagent past 250K tokens of context, a question while agents run, and a pointer back to the ledger after compaction |
@@ -78,7 +81,9 @@ python3 install.py --check      # verify links, generated files, rule blocks, si
 python3 install.py --uninstall  # remove nstack and restore what the first install replaced
 ```
 
-The installer symlinks the skills, commands and extension into `~/.omp/agent/`, generates one agent file per roster agent, and writes marked blocks into `~/.omp/agent/RULES.md` and `~/.omp/agent/AGENTS.md`. The first install backs up everything it touches to `local/backups/baseline/`, and `--uninstall` restores from there; every later install writes a dated backup too. Edit files in the repository, never the installed copies, and rerun the installer.
+The installer symlinks the skills, commands and extension into `~/.omp/agent/` and `tools/web.py` to `~/.local/bin/web`, generates one agent file per roster agent, and writes marked blocks into `~/.omp/agent/RULES.md` and `~/.omp/agent/AGENTS.md`. The first install backs up everything it touches to `local/backups/baseline/`, and `--uninstall` restores from there; every later install writes a dated backup too. Edit files in the repository, never the installed copies, and rerun the installer.
+
+`web` reads its keys from the environment or `~/.omp/agent/keys.env`: `EXA_API_KEY` for search, `TINYFISH_API_KEYS` (comma-separated free keys) for reading and as the search fallback, and optionally `BRAVE_API_KEY` and `SERPER_API_KEY`. `web save` and `web prior` keep research in [nbrain](https://github.com/nategriffin26/nbrain) when its CLI is on PATH.
 
 `--check` validates every roster model against your `omp models` catalog, so on a different setup edit `roster.toml` before the first install.
 
@@ -86,7 +91,7 @@ The installer symlinks the skills, commands and extension into `~/.omp/agent/`, 
 
 1. **Fork and clone** it anywhere; the installer links from wherever the repository sits. My path (`~/Projects/nstack`) and my model settings page appear only in the routing text `install.py` generates and in `dross.md`.
 2. **Put your name in.** `git grep -n Nate` finds every mention: the rules, skills, commands, agent templates, the guard's notes and that generated routing text. Swap my phone, Mac and data for the places you check your own work.
-3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other. The research and verify roles expect a `research` skill that is not part of this repository: bring your own or drop the roles.
+3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other. The research and verify roles are the Dig and Wave workers of `skills/nstack-research`.
 4. **Install and probe.** Run a fresh omp session on an ordinary-looking task in a scratch repo, and judge it by what the agent actually read, ran and changed, not by what it says it followed.
 
 Keep `omp-rules.md` under 2,000 characters and each skill under 12,000. The rules ride on every turn of every session, so the floor stays short and the detail loads on demand; `--check` enforces both limits.

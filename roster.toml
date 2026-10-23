@@ -27,12 +27,12 @@ agents = ["muse","gemini"]
 
 [roles.research]
 title = "Research lanes"
-does = "one lane of skill://research each; retrieves through tf.py, writes a claim-ledger dossier at the assigned absolute path, returns a compact status"
+does = "one Dig or one Wave lane of skill://nstack-research each; retrieves through `web`, writes a note or claim-ledger dossier at the assigned absolute path, returns a compact status"
 agents = ["researcher"]
 
 [roles.verify]
 title = "Verification lanes"
-does = "re-fetches the pages cited by specific skill://research claims and returns CONFIRMED, CONTESTED, REFUTED or UNKNOWN per claim"
+does = "re-reads the pages cited by specific skill://nstack-research claims and returns CONFIRMED, CONTESTED, REFUTED or UNKNOWN per claim"
 agents = ["verifier"]
 
 [agents.opus]

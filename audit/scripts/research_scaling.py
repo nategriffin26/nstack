@@ -3,7 +3,7 @@
 
 Joins every research run on disk (lane dossiers, verifier verdicts, SYNTHESIS.md/.json) with
 the omp session logs (each lane's model and cost, verifier cost, the orchestrator's cost from
-the first lane spawn to the synthesis write, Nate's first reply after it) and the tf.py ledger
+the first lane spawn to the synthesis write, Nate's first reply after it) and the `web` ledger
 (pages each lane fetched). Writes local/analysis/RESEARCH-SCALING.json and prints the tables
 behind the audit report (local/audit/REPORT.md, private).
 """
@@ -19,7 +19,7 @@ RUN_GLOBS = ["Projects/*/local/research/*/", "Projects/*/*/local/research/*/",
 URL = re.compile(r"https?://[^\s\"'<>)\]\\`|]+")
 SPAWN_PATH = re.compile(r"((?:/Users/|~/)[^\s\"'`]*?/)?local/research/([A-Za-z0-9._\-]+)/(verify/)?([A-Za-z0-9._\-]+)\.json")
 KEEP_QUERY = ("youtube.com", "news.ycombinator.com")
-LEDGER = os.path.join(HOME, ".omp", "local", "tinyfish-rate.db")
+LEDGER = os.path.join(HOME, ".omp", "local", "web", "ledger.db")
 
 
 def norm(url):
