@@ -585,9 +585,9 @@ TYPES = {"paper": "research paper", "news": "news", "github": "github", "pdf": "
          "company": "company", "people": "people", "financial": "financial report"}
 INDEX_TYPES = ("company", "people")   # Exa's dedicated indices: no date or exclude filters
 RECENCY_DAYS = {"day": 1, "week": 7, "month": 31, "year": 366}
-PROVIDERS = ("exa", "tinyfish", "brave", "serper")
+PROVIDERS = ("exa", "tinyfish", "brave", "serper", "parallel")
 PROVIDER_KEYS = {"exa": "EXA_API_KEY", "tinyfish": "TINYFISH_API_KEYS",
-                 "brave": "BRAVE_API_KEY", "serper": "SERPER_API_KEY"}
+                 "brave": "BRAVE_API_KEY", "serper": "SERPER_API_KEY", "parallel": "PARALLEL_API_KEY"}
 
 
 def parse_date(s: str, flag: str) -> datetime:
@@ -741,13 +741,44 @@ def serper_search(a: argparse.Namespace, lo, hi, key: str) -> list[dict]:
     return out[: a.limit]
 
 
+def parallel_search(a: argparse.Namespace, lo, hi, key: str) -> list[dict]:
+    """Parallel /v1/search, mode fast ($1/1k); --deep uses advanced ($5/1k). It has no end-date filter."""
+    if hi:
+        raise Fatal("parallel: no --before filter")
+    policy: dict = {}
+    site = a.site or ("github.com" if a.type == "github" else None)
+    if site:
+        policy["include_domains"] = _domains(site)
+    elif a.exclude:
+        policy["exclude_domains"] = _domains(a.exclude)
+    if lo:
+        policy["after_date"] = lo.strftime("%Y-%m-%d")
+    settings: dict = {"max_results": min(a.limit, 20)}
+    if policy:
+        settings["source_policy"] = policy
+    body = {"objective": a.query, "search_queries": [a.query[:200]],
+            "mode": "advanced" if a.deep else "fast", "advanced_settings": settings}
+    data = _json_call("https://api.parallel.ai/v1/search", {"x-api-key": key}, body, timeout=120)
+    out = []
+    for r in data.get("results") or []:
+        url = r.get("url") or ""
+        excerpts = [e for e in r.get("excerpts") or [] if isinstance(e, str)]
+        row = {"title": r.get("title") or "", "url": url, "site_name": _host(url),
+               "snippet": _clip(" ".join(excerpts)), "highlights": excerpts}
+        if r.get("publish_date"):
+            row["date"] = r["publish_date"][:10]
+        out.append(row)
+    return out[: a.limit]
+
+
 def provider_search(name: str, a: argparse.Namespace, lo, hi, fallback: bool) -> list[dict]:
     if name == "tinyfish":
         return tinyfish_search(a, lo, hi, fallback)
     key = env_key(PROVIDER_KEYS[name])
     if not key:
         raise Fatal(f"{name}: {PROVIDER_KEYS[name]} is not set")
-    return {"exa": exa_search, "brave": brave_search, "serper": serper_search}[name](a, lo, hi, key)
+    return {"exa": exa_search, "brave": brave_search, "serper": serper_search,
+            "parallel": parallel_search}[name](a, lo, hi, key)
 
 
 def _transient(exc: Exception) -> bool:
@@ -2089,7 +2120,7 @@ def run_keys(a: argparse.Namespace) -> int:
         keys = []
         print(f"tinyfish pool: NONE ({exc})")
     print("tinyfish funded key: " + ("set, not pooled" if env_key("TINYFISH_API_KEY") else "not set"))
-    for name in ("exa", "brave", "serper"):
+    for name in ("exa", "brave", "serper", "parallel"):
         var = PROVIDER_KEYS[name]
         print(f"{name}: {'set' if env_key(var) else 'NOT SET (' + var + ')'}")
     print(f"search order: {' -> '.join(PROVIDERS)}")

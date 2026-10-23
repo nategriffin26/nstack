@@ -39,9 +39,9 @@ DATA = os.environ.get("RESEARCH_EVAL_DIR") or os.path.join(REPO, "local", "evals
 WEB = os.environ.get("WEB_BIN") or "web"
 OMP = os.environ.get("OMP_BIN") or "omp"
 
-# List price per 1,000 searches, USD, as configured in `web` (Exa type "lite"; TinyFish free pool).
-# Source: provider pricing pages read 2026-10-22 (research-shape SearchAPILandscape lane).
-PRICE_PER_1K = {"exa": 4.0, "tinyfish": 0.0, "brave": 5.0, "serper": 1.0}
+# List price per 1,000 searches, USD, as configured in `web` (Exa type "lite"; Parallel mode "fast"; TinyFish free pool).
+# Source: provider pricing pages read 2026-10-22/23 (research-shape SearchAPILandscape lane, parallel-vs-exa Dig).
+PRICE_PER_1K = {"exa": 4.0, "tinyfish": 0.0, "brave": 5.0, "serper": 1.0, "parallel": 1.0}
 WORKER_TOOLS = "read,bash,write,grep,glob"
 DIG_MAX_TIME = "20m"
 PAGE_CHARS = 20000          # judge sees a cited page whole up to this size
