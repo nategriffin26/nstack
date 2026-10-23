@@ -1107,8 +1107,21 @@ def emit_fetch(payload: dict, pending: list[str], a: argparse.Namespace,
 
 
 def run_read(a: argparse.Namespace) -> int:
-    """Store, then TinyFish, then Exa, then Wayback; results in argument order."""
+    """Store, then TinyFish, then Exa, then Wayback; results in argument order.
+    A local file (a store path from an earlier header) is printed from disk, unlogged."""
     validate_selectors(a)
+    local = [u for u in a.urls if not re.match(r"^[a-z][a-z0-9+.-]*://", u, re.I)
+             and os.path.isfile(os.path.expanduser(u))]
+    for path in local:
+        text = _read_cached(os.path.expanduser(path)) or ""
+        r = {"url": path, "title": "local file", "route": "disk, not logged"}
+        if a.grep_re:
+            print_matches(r, text, path, a.grep_re, a.context)
+        else:
+            print_page(r, text, path, a.max_chars)
+    a.urls = [u for u in a.urls if u not in local]
+    if not a.urls:
+        return 0
     shaped = a.include_selector or a.exclude_selector or a.format != "markdown"
     hits: list[dict] = []
     live: list[str] = []
@@ -1672,7 +1685,7 @@ def check_docs(files: list[str], run_dir: str | None, explicit: str | None) -> i
         bare = run_lane_names(run_dir)
 
         def in_run(lane: str, ts: float) -> bool:
-            return (lane == explicit or lane.startswith(slug + "/")
+            return (lane == explicit or lane == slug or lane.startswith(slug + "/")
                     or (lane in bare and ts >= start))
     by_key: dict[str, list[tuple[str, float, int]]] = {}
     for p in LEDGER.db.execute("SELECT url, lane, ts, chars FROM pages WHERE status='ok' AND url IS NOT NULL"):
@@ -2470,7 +2483,9 @@ def run(a: argparse.Namespace) -> int:
 def main() -> int:
     global LANE
     a = build_parser().parse_args()
-    a.lane_explicit = getattr(a, "lane", None) is not None or bool(os.environ.get("WEB_LANE"))
+    # WEB_LANE names where reads are logged; only an explicit --lane picks the lane check and digest judge.
+    a.lane_explicit = getattr(a, "lane", None) is not None or (
+        bool(os.environ.get("WEB_LANE")) and a.cmd not in ("check", "digest"))
     LANE = getattr(a, "lane", None) or os.environ.get("WEB_LANE") or (
         "mcp" if a.cmd == "mcp" else "unknown")
     try:

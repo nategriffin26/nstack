@@ -97,9 +97,9 @@ class WebCase(unittest.TestCase):
         threading.Thread(target=self.fake.serve_forever, daemon=True).start()
         return self.fake
 
-    def web(self, *args: str, cwd: str | None = None) -> subprocess.CompletedProcess:
+    def web(self, *args: str, cwd: str | None = None, env_extra: dict | None = None) -> subprocess.CompletedProcess:
         env = {"PATH": os.environ.get("PATH", ""), "HOME": self.home, "WEB_HOME": self.web_home,
-               "EXA_API_KEY": "test-exa", "TINYFISH_API_KEYS": "test-a,test-b"}
+               "EXA_API_KEY": "test-exa", "TINYFISH_API_KEYS": "test-a,test-b", **(env_extra or {})}
         if self.fake:
             env.update(WEB_EXA_URL=f"{self.fake.url}/exa",
                        WEB_TINYFISH_SEARCH_URL=f"{self.fake.url}/tf-search",
@@ -236,6 +236,19 @@ class ReadFallback(WebCase):
         self.assertIn("| via exa =====", p.stdout)
         self.assertIn("HTTP 401", p.stdout)
 
+    def test_store_path_is_read_from_disk_not_fetched(self):
+        """Bug: workers pass the store path from a truncated read back to `web read`,
+        which sends it to TinyFish as a URL and fails with HTTP 400."""
+        fake = self.serve({})
+        path = os.path.join(self.home, "page.md")
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("intro\n" + "filler " * 50 + "\nThe price is $12 per 1,000 requests.\n")
+        p = self.web("read", path, "--grep", "price is", "--lane", "t")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("The price is $12 per 1,000 requests.", p.stdout)
+        self.assertEqual(fake.requests, [])
+        self.assertEqual(self.db().execute("SELECT count(*) FROM pages").fetchone(), (0,))
+
 
 class Log(WebCase):
     def test_repeat_ok_reads_are_not_counted_as_retries(self):
@@ -352,6 +365,28 @@ class LaneScoping(WebCase):
         fails = [line for line in p.stdout.splitlines() if line.startswith("FAIL")]
         self.assertEqual(len(fails), 1, p.stdout)
         self.assertTrue(fails[0].startswith("FAIL UNFETCHED_URL https://q.example/view?id=B"), fails)
+
+    def test_dig_reads_under_the_bare_run_slug_count_for_the_run(self):
+        """Bug: a Dig worker logging under `<slug>` instead of `<slug>/dig` gets
+        every citation flagged OTHER_RUN_URL, noise that teaches readers to skip WARN."""
+        db = self.db()
+        run = self.make_run({"NOTE.md": "# Q\nDig · as of 2026-10-23 · new-run-2026-10\n"
+                                        f"A [1].\n## Sources\n[1] A · {self.NEW}\n"})
+        self.add_page(db, "new-run-2026-10", self.NEW, time.time() + 5)
+        p = self.web("check", run)
+        self.assertNotIn("OTHER_RUN_URL", p.stdout)
+        self.assertIn("1 read by this run", p.stdout)
+
+    def test_digest_of_a_run_ignores_the_shell_lane(self):
+        """Bug: with WEB_LANE exported (as an orchestrator logging its own reads does),
+        `web digest <run-dir>` filters to that lane and dies 'no dossier for lane'."""
+        db = self.db()
+        run = self.make_run({"CounterThesis.json": json.dumps(dossier([self.NEW]))})
+        self.add_page(db, "new-run-2026-10/CounterThesis", self.NEW, time.time() + 5)
+        p = self.web("digest", run, env_extra={"WEB_LANE": "new-run-2026-10/Orchestrator"})
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("CounterThesis", p.stdout)
+        self.assertIn("1 dossiers", p.stdout)
 
 
 if __name__ == "__main__":
