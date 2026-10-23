@@ -16,8 +16,9 @@ Search asks Exa; when Exa fails it falls back to TinyFish, Brave, then Serper an
 says which answered. Read serves a stored copy under a day old, else TinyFish,
 then Exa, then the Wayback Machine. Every page read is saved under $WEB_HOME/pages and
 logged per lane (--lane or WEB_LANE; a run's lanes are <run-slug>/<Lane>) in
-$WEB_HOME/ledger.db, which check, digest and log read. $WEB_HOME defaults to
-~/.omp/local/web. Keys come from the environment or ~/.omp/agent/keys.env.
+$WEB_HOME/ledger.db, which check, digest and log read. check also has a decision model
+(Jev, via OpenRouter) score each claim against its cited pages; LOW_SUPPORT marks weak ones.
+$WEB_HOME defaults to ~/.omp/local/web. Keys come from the environment or ~/.omp/agent/keys.env.
 
 Exit 75: transient (rate limit or outage); re-run the same command. Exit 1: fatal.
 """
@@ -51,6 +52,7 @@ KEYS_FILE = os.path.expanduser("~/.omp/agent/keys.env")
 EXA_URL = os.environ.get("WEB_EXA_URL") or "https://api.exa.ai"
 SEARCH_URL = os.environ.get("WEB_TINYFISH_SEARCH_URL") or "https://api.search.tinyfish.ai"
 FETCH_URL = os.environ.get("WEB_TINYFISH_FETCH_URL") or "https://api.fetch.tinyfish.ai"
+DECISIONS_URL = os.environ.get("WEB_DECISIONS_URL") or "https://openrouter.ai/api/alpha/decisions"
 MAX_FETCH_URLS = 10
 RETRY_STATUS = (500, 503, 504)
 WINDOW = 60.0
@@ -201,6 +203,8 @@ SCHEMA = (
     "CREATE TABLE IF NOT EXISTS queries(ts REAL, lane TEXT, cwd TEXT, query TEXT, params TEXT, "
     "provider TEXT, n INTEGER)",
     "CREATE INDEX IF NOT EXISTS queries_idx ON queries(lane, ts)",
+    # Claim-support scores from the decision model, keyed by model, claim and page text.
+    "CREATE TABLE IF NOT EXISTS support(key TEXT PRIMARY KEY, p REAL, ts REAL)",
 )
 
 
@@ -1390,6 +1394,82 @@ def quote_in_text(datum: str, text: str) -> bool:
     return False
 
 
+# The quote match above passes any datum sharing one number with the page, so check also
+# asks a decision model whether the cited pages support each claim. On 238 cited sentences
+# scored against whole pages (deep-research-practice-2026-10), Jev 1.14 ranked supported
+# above unsupported 88.5% of the time (AUC vs a Sonnet judge); p < LOW_SUPPORT caught half the
+# unsupported and 6% of the supported. A screen that picks claims for a verifier, never a verdict.
+SUPPORT_MODEL = "typesafe/jev-1.14"
+LOW_SUPPORT = 0.3
+SUPPORT_CHARS = 800_000     # Jev 1.14 reads 262,144 tokens
+SUPPORT_JOBS = 8
+SUPPORT_QUESTION = {"supported": {
+    "type": "noul",
+    "instructions": "Does the source text state or directly imply every fact in the claim, "
+                    "including each number, name, version, date and qualifier?",
+    "criteria": {"true": "Every fact in the claim appears in or follows directly from the source.",
+                 "false": "At least one fact, number, name, date or qualifier in the claim is "
+                          "missing from or contradicted by the source."}}}
+
+
+def _support_one(key: str, claim: str, text: str) -> float:
+    body = {"model": SUPPORT_MODEL, "state": {"claim": claim, "source": text[:SUPPORT_CHARS]},
+            "questions": SUPPORT_QUESTION}
+    for attempt in range(3):
+        try:
+            r = _json_call(DECISIONS_URL, {"Authorization": f"Bearer {key}"}, body, timeout=120)
+            return float(r["answers"]["supported"]["noul"])
+        except HTTPFailure as exc:
+            if attempt == 2 or not (exc.code == 429 or exc.code >= 500):
+                raise
+            time.sleep(2 + 2 * attempt)
+    raise AssertionError("unreachable")
+
+
+def support_scores(pairs: list[tuple[str, str]]) -> tuple[list[float | None], str | None]:
+    """P(the text supports the claim) per (claim, text); None where it could not be scored,
+    with the first reason. Scores are cached in the ledger, so a re-check costs nothing."""
+    import concurrent.futures as cf
+    ids = [hashlib.sha1(f"{SUPPORT_MODEL}\0{c}\0{t}".encode()).hexdigest() for c, t in pairs]
+    cached = {}
+    for i in range(0, len(ids), 500):
+        chunk = ids[i:i + 500]
+        cached.update(LEDGER.db.execute(
+            f"SELECT key, p FROM support WHERE key IN ({','.join('?' * len(chunk))})", chunk).fetchall())
+    out: list[float | None] = [cached.get(k) for k in ids]
+    todo = [i for i, p in enumerate(out) if p is None]
+    if not todo:
+        return out, None
+    key = env_key("OPENROUTER_API_KEY")
+    if not key:
+        return out, "no OPENROUTER_API_KEY"
+    errors: list[str] = []
+    with cf.ThreadPoolExecutor(SUPPORT_JOBS) as ex:
+        futs = {ex.submit(_support_one, key, *pairs[i]): i for i in todo}
+        for f in cf.as_completed(futs):
+            try:
+                out[futs[f]] = f.result()
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                errors.append(str(exc)[:160])
+    now = time.time()
+    LEDGER.db.executemany("INSERT OR REPLACE INTO support VALUES (?,?,?)",
+                          [(ids[i], out[i], now) for i in todo if out[i] is not None])
+    return out, (errors[0] if errors else None)
+
+
+def support_flags(items: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
+    """items: (where, claim, cited text). LOW_SUPPORT per weak claim, one NOTE for any unscored."""
+    if not items:
+        return []
+    ps, err = support_scores([(c, t) for _, c, t in items])
+    flags = [("WARN", "LOW_SUPPORT", f"{where} p={p:.2f} {claim[:90]!r}")
+             for (where, claim, _), p in zip(items, ps) if p is not None and p < LOW_SUPPORT]
+    missing = sum(p is None for p in ps)
+    if missing:
+        flags.append(("NOTE", "SUPPORT_UNCHECKED", f"{missing} of {len(ps)} claims not scored: {err}"))
+    return flags
+
+
 def _host_in(url: str, hosts: tuple[str, ...]) -> bool:
     host = canon_url(url).split("/")[0]
     if host in X_SITE_HOSTS:
@@ -1509,6 +1589,7 @@ def check_dossier(path: str, explicit_lane: str | None = None) -> dict:
 
     if claims is not None:
         confs = []
+        to_score: list[tuple[str, str, str]] = []
         for i, c in enumerate(claims, 1):
             if not isinstance(c, dict):
                 flags.append(("FAIL", "NO_SOURCE_CLAIM", f"{i}: claim is not an object"))
@@ -1539,11 +1620,18 @@ def check_dossier(path: str, explicit_lane: str | None = None) -> dict:
                            or "/api/v1/models/" in u or "huggingface.co/api/models/" in u
                            for u in urls):
                     flags.append(("WARN", "UNSOURCED_LICENSE", f"{i}: no LICENSE file or model-card source"))
+            pages = []
             for j, s in enumerate(sources, 1):
                 depth = s.get("readDepth") or ""
                 cite_check(s.get("url") or "", depth, f"claim {i}.{j}")
                 if depth in DEPTHS_READ:
                     quote_check(s.get("datum") or "", [s.get("url") or ""], f"{i}.{j}")
+                    page = stored_text(s.get("url") or "")[0]
+                    if page and page not in pages:
+                        pages.append(page)
+            if pages and isinstance(c.get("claim"), str) and c["claim"].strip():
+                to_score.append((f"{i}:", c["claim"], "\n\n=====\n\n".join(pages)))
+        flags.extend(support_flags(to_score))
         if len(confs) >= 5 and all(x == "high" for x in confs):
             flags.append(("WARN", "ALL_HIGH", f"{len(confs)} claims, 100% high"))
         stop = data.get("stoppedBecause")
@@ -1666,11 +1754,50 @@ def run_lane_names(run_dir: str) -> set[str]:
     return names
 
 
+_REF_RE = re.compile(r"\[(\d+(?:\s*[,–-]\s*\d+)*)\]")
+
+
+def cited_sentences(text: str) -> list[tuple[str, list[str]]]:
+    """(sentence without its citations, cited URLs) for each sentence of a note or synthesis
+    body that cites [n] (resolved through ## Sources) or an inline URL. Tables and the
+    Sources and Unsure sections are skipped."""
+    sources: dict[int, str] = {}
+    body: list[str] = []
+    section = ""
+    for line in text.splitlines():
+        if line.startswith("#"):
+            section = line.lstrip("#").strip().lower() if line.startswith("## ") else section
+            continue
+        if section == "sources":
+            m = re.match(r"^\s*\[(\d+)\].*?(https?://\S+)", line)
+            if m:
+                sources[int(m.group(1))] = m.group(2).rstrip(".,;")
+        elif section != "unsure" and line.strip() and not line.lstrip().startswith("|"):
+            body.append(line.strip().lstrip("-*• ").strip())
+    out = []
+    for line in body:
+        for s in re.split(r"(?<=[.!?\]])\s+(?=[A-Z\"*(])", line):
+            refs = []
+            for g in _REF_RE.findall(s):
+                for part in re.split(r"\s*,\s*", g):
+                    ends = [int(x) for x in re.split(r"\s*[–-]\s*", part) if x]
+                    lo, hi = ends[0], ends[-1]
+                    refs += range(lo, hi + 1) if 0 <= hi - lo <= 20 else [lo, hi]
+            cited = [sources[r] for r in dict.fromkeys(refs) if r in sources] + _urls_in_text(s)
+            claim = re.sub(r"\(\s*[,;]?\s*\)", "", _URL_RE.sub("", _REF_RE.sub("", s)))
+            claim = re.sub(r"\s+", " ", claim).strip()
+            if cited and len(claim) > 20:
+                out.append((claim, list(dict.fromkeys(cited))))
+    return out
+
+
+
 def check_docs(files: list[str], run_dir: str | None, explicit: str | None) -> int:
     """Every URL in a synthesis or note must be a page read through web,
     by this run when there is one, so nothing cited points at a page nobody opened."""
     urls: list[str] = []
     flags: list[tuple[str, str, str]] = []
+    to_score: list[tuple[str, str, str]] = []
     for f in files:
         with open(f, encoding="utf-8") as fh:
             text = fh.read()
@@ -1679,6 +1806,12 @@ def check_docs(files: list[str], run_dir: str | None, explicit: str | None) -> i
         for u in _urls_in_text(text):
             if u not in urls:
                 urls.append(u)
+        if f.endswith(".md"):
+            for n, (sentence, cited) in enumerate(cited_sentences(text), 1):
+                pages = list(dict.fromkeys(t for t in (stored_text(u)[0] for u in cited) if t))
+                if pages:
+                    to_score.append((f"{os.path.basename(f)} sentence {n}:", sentence, "\n\n=====\n\n".join(pages)))
+    flags += support_flags(to_score)
     in_run = None
     if run_dir:
         slug, start = run_of(run_dir)
@@ -2137,6 +2270,7 @@ def run_keys(a: argparse.Namespace) -> int:
         var = PROVIDER_KEYS[name]
         print(f"{name}: {'set' if env_key(var) else 'NOT SET (' + var + ')'}")
     print(f"search order: {' -> '.join(PROVIDERS)}")
+    print(f"openrouter (check's support score): {'set' if env_key('OPENROUTER_API_KEY') else 'NOT SET (OPENROUTER_API_KEY)'}")
     if keys:
         LEDGER.report(keys)
     n, size = store_stats()
@@ -2418,8 +2552,8 @@ def build_parser() -> argparse.ArgumentParser:
     add_common(g, wait=False)
     g.set_defaults(func=run_github)
 
-    c = sub.add_parser("check", help="flags against the ledger: a run dir's SYNTHESIS or NOTE, "
-                                    "a lane dossier, or any .md's URLs")
+    c = sub.add_parser("check", help="flags against the ledger and a support score per claim: a run "
+                                    "dir's SYNTHESIS or NOTE, a lane dossier, or any .md's URLs")
     c.add_argument("target", help="run dir, dossier .json, or .md")
     add_common(c, wait=False)
     c.set_defaults(func=run_check)

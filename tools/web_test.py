@@ -389,5 +389,48 @@ class LaneScoping(WebCase):
         self.assertIn("1 dossiers", p.stdout)
 
 
+class SupportScore(WebCase):
+    NEW = LaneScoping.NEW
+    make_run = LaneScoping.make_run
+    PAGE = "Exa pricing. Lite is $4 per 1,000 requests. In a 2025 survey, 12 teams said they use it.\n" * 20
+
+    def run_with_page(self) -> str:
+        db = self.db()
+        path = os.path.join(self.home, "page.md")
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(self.PAGE)
+        claim = {"claim": "Exa deep search costs $12 per 1,000 requests.", "kind": "fact",
+                 "confidence": "medium", "support": "x" * 400,
+                 "sources": [{"url": self.NEW, "readDepth": "page", "sourceType": "official",
+                              "datum": "Exa deep is $12 per 1,000 requests, says the pricing page"}]}
+        run = self.make_run({"CounterThesis.json": json.dumps(
+            {"slice": "CounterThesis", "status": "complete", "stoppedBecause": "done", "claims": [claim] * 5})})
+        db.execute("INSERT INTO pages VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                   (time.time() + 5, "new-run-2026-10/CounterThesis", "/", self.NEW, None, "t",
+                    len(self.PAGE), "ok", None, path, "fetch"))
+        return os.path.join(run, "CounterThesis.json")
+
+    def check(self, status: int, body: dict) -> subprocess.CompletedProcess:
+        fake = self.serve({"/decisions": (status, body)})
+        return self.web("check", self.run_with_page(),
+                        env_extra={"WEB_DECISIONS_URL": f"{fake.url}/decisions", "OPENROUTER_API_KEY": "test"})
+
+    def test_claim_its_page_does_not_support_is_flagged(self):
+        """Bug: a claim whose datum shares one number ('1,000') with the page passed the quote
+        check, so an invented '$12 deep search' claim read as verified with 0 WARN."""
+        p = self.check(200, {"answers": {"supported": {"type": "noul", "noul": 0.04}}})
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("UNVERIFIED_QUOTE", p.stdout)   # the quote match alone lets it through
+        self.assertIn("WARN LOW_SUPPORT 1: p=0.04", p.stdout)
+
+    def test_judge_outage_leaves_check_usable(self):
+        """Bug risk: OpenRouter down turns every check into an error or a wall of WARNs."""
+        p = self.check(503, {"error": "unavailable"})
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("LOW_SUPPORT", p.stdout)
+        self.assertIn("NOTE SUPPORT_UNCHECKED 5 of 5 claims not scored", p.stdout)
+        self.assertIn("0 FAIL, 0 WARN", p.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -83,7 +83,7 @@ python3 install.py --uninstall  # remove nstack and restore what the first insta
 
 The installer symlinks the skills, commands and extension into `~/.omp/agent/` and `tools/web.py` to `~/.local/bin/web`, generates one agent file per roster agent, and writes marked blocks into `~/.omp/agent/RULES.md` and `~/.omp/agent/AGENTS.md`. The first install backs up everything it touches to `local/backups/baseline/`, and `--uninstall` restores from there; every later install writes a dated backup too. Edit files in the repository, never the installed copies, and rerun the installer.
 
-`web` reads its keys from the environment or `~/.omp/agent/keys.env`: `EXA_API_KEY` for search, `TINYFISH_API_KEYS` (comma-separated free keys) for reading and as the search fallback, and optionally `BRAVE_API_KEY` and `SERPER_API_KEY`. `web save` and `web prior` keep research in [nbrain](https://github.com/nategriffin26/nbrain) when its CLI is on PATH.
+`web` reads its keys from the environment or `~/.omp/agent/keys.env`: `EXA_API_KEY` for search, `TINYFISH_API_KEYS` (comma-separated free keys) for reading and as the search fallback, optionally `BRAVE_API_KEY` and `SERPER_API_KEY`, and `OPENROUTER_API_KEY` for the support score `web check` gives each claim (Jev, about $0.04 per million input tokens; without the key check skips it and says so). `web save` and `web prior` keep research in [nbrain](https://github.com/nategriffin26/nbrain) when its CLI is on PATH.
 
 `--check` validates every roster model against your `omp models` catalog, so on a different setup edit `roster.toml` before the first install.
 

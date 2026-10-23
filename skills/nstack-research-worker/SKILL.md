@@ -64,7 +64,7 @@ Write what Nate needs to act, not the story of your search. Sources rules, each 
 - One URL per line, nothing after it; each URL once, under one number; every `[n]` in the text has its line.
 - Only pages you read. A search result, a search log or a page that failed to load never goes in Sources; say it in Unsure.
 
-Before returning, `web check <NOTE.md>` shows no FAIL. Return status, artifact, verdict (the answer in one line), claimCount (cited sentences), sourceCount, readCount (`web log --lane <lane>`), bytes, stoppedBecause, errors.
+Before returning, `web check <NOTE.md>` shows no FAIL. Re-read each `LOW_SUPPORT` sentence (a cheap model scored its cited page as not backing it) on its page: keep it if the page does back it, else reword it to what the page says, re-cite it, or move it to Unsure. Return status, artifact, verdict (the answer in one line), claimCount (cited sentences), sourceCount, readCount (`web log --lane <lane>`), bytes, stoppedBecause, errors.
 
 ## Lane: dossier JSON
 
@@ -87,7 +87,7 @@ Before returning, `web check <NOTE.md>` shows no FAIL. Return status, artifact, 
 - `toolHealth` lists only the surfaces you used, with counts and exact failure strings; `check` compares it with your log.
 - Calculations cite their inputs and show the formula. Recommendations go in `verdict` or an inference claim, never dressed as sourced fact.
 - Ideation lanes deliver `directions: [{direction, rationale, inspiredBy, nearestExistingWork, risk}]` in place of claims; cited evidence still meets the read floor.
-- Before returning, `web check <dossier>` shows no FAIL; justify each WARN in toolHealth. Return status, artifact, verdict, claimCount, sourceCount, readCount, bytes, stoppedBecause, errors.
+- Before returning, `web check <dossier>` shows no FAIL. Re-read each `LOW_SUPPORT` claim on its page: keep it if the page does back it, else narrow it to what the page says, cite the page that says it, or drop it. Justify each remaining WARN in toolHealth. Return status, artifact, verdict, claimCount, sourceCount, readCount, bytes, stoppedBecause, errors.
 
 ## Verification
 

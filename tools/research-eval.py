@@ -44,8 +44,10 @@ OMP = os.environ.get("OMP_BIN") or "omp"
 PRICE_PER_1K = {"exa": 4.0, "tinyfish": 0.0, "brave": 5.0, "serper": 1.0, "parallel": 1.0}
 WORKER_TOOLS = "read,bash,write,grep,glob"
 DIG_MAX_TIME = "20m"
-PAGE_CHARS = 20000          # judge sees a cited page whole up to this size
-HEAD_CHARS = 4000           # longer pages: this head plus windows around the cited terms
+# The judge sees each cited page whole: with 20k-char windows it called 30 of 78 cited sentences
+# unsupported only because the passage sat outside its window (answers-20261023-0053).
+PAGE_CHARS = 400000         # largest cited page so far: 264,605 chars
+HEAD_CHARS = 4000           # past PAGE_CHARS: this head plus windows around the cited terms
 JUDGE_ORDER = ("verifier", "opus", "astra", "gemini")
 
 
