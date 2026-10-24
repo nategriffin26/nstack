@@ -10,7 +10,7 @@ It is written for one person, me (Nate), and tuned against an audit of about a t
 
 Every rule follows from four ideas, and the skills tell agents to reason from them wherever no rule fits:
 
-- **Proportion.** The person's attention, wall time and usage are all costs. Spend where it changes what they get, in proportion to how likely it is to change it.
+- **Proportion.** The person's attention, wall time and usage are all costs. Spend where it changes what they get, in proportion to how likely it is to change it. Agent time is cheap next to theirs, so agents do the translating: what the person reads or decides from is built for them, not agents' working text passed through.
 - **Reality settles facts.** Facts, causes and numbers get checked, not assumed; an agent's report is a claim until an artifact shows it. Taste, scope and one-way doors belong to the person, decided from real previews.
 - **Simple architecture matters most.** Machinery nobody needs makes every later change cost more, and a simple shape can always be extended when a real need shows up.
 - **A worker knows only its brief.** Delegation carries intent exactly as far as the brief does.
@@ -102,6 +102,7 @@ Keep `omp-rules.md` under 2,000 characters and each skill under 12,000. The rule
 - [Specula](https://github.com/specula-org/Specula) (Apache-2.0): `nstack-formal`'s history-mined targets and trace validation (bug-archaeology, tla-trace-workflow).
 - [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): the grilling skill behind `nstack-grill`, limited to the important things and run only on request.
 - [helix](https://github.com/DocumentDrivenDX/helix): the no-process-porn skill.
+- [Planning with Agents](https://maggieappleton.com/planning-agents) by Maggie Appleton: agents doing the translating (Proportion), options shown by what they do to the real code, live controls for a continuous taste value, and short grill rounds with "show me".
 - [codetesla51/skills](https://github.com/codetesla51/skills): the attack-first test rules in `skills/nstack` §5 and the review's check-the-checks step (go-test-hardening), fakes at the wire and outcome assertions (its mocking reference), starting a fix from the last version that worked and fixing the same mistake elsewhere (debugging), fewer concepts and no silent defaults (go-codebase-cleanup), reverting speed changes inside the noise (perf-optimizer, barrage) and the rejected option in the commit message (code-ownership). That repository has no license, so these are paraphrased ideas; no text was copied.
 
 ## License
