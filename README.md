@@ -29,7 +29,7 @@ Each question comes with a recommended default, and work that doesn't depend on 
 
 | Piece | Loads | What it does |
 |---|---|---|
-| `omp-rules.md` | every session and subagent, always | The floor: eleven standing rules in under 2,500 characters |
+| `omp-rules.md` | every session and subagent, always | The floor: eleven standing rules in under 4,000 characters |
 | `skills/nstack` | before features, multi-step changes and agent briefs | The process: size, frame, decide, build, run agents, prove, report |
 | `skills/nstack-design` | big asks: rewrites, new systems, unsettled architecture or look | A one-page shape: requirements by source, verified facts, decisions, the simplest architecture, slices with checks |
 | `skills/nstack-verify` | when proof needs more than the tests, or a number decides something | Proof on the real surface; checks a number before it counts |
@@ -94,7 +94,7 @@ The installer symlinks the skills, commands and extension into `~/.omp/agent/` a
 3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other. The research and verify roles are the Dig and Wave workers of `skills/nstack-research`.
 4. **Install and probe.** Run a fresh omp session on an ordinary-looking task in a scratch repo, and judge it by what the agent actually read, ran and changed, not by what it says it followed.
 
-Keep `omp-rules.md` under 2,500 characters and each skill under 12,000. The rules ride on every turn of every session, so the floor stays short and the detail loads on demand; `--check` enforces both limits.
+Keep `omp-rules.md` under 4,000 characters and each skill under 20,000. The rules ride on every turn of every session, so the floor stays short and the detail loads on demand; `--check` enforces both limits.
 
 ## Credits
 
