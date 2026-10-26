@@ -10,3 +10,4 @@ Nate's standing rules for building software. They override omp's defaults, agent
 - A wrong premise in your brief (an input, a fact, the approach, a check that cannot pass honestly): report it with evidence and a recommendation, and finish the rest.
 - Done means it works where Nate uses it, every state and edge finished. A test names the bug it catches and was seen failing. Never edit a check to make it pass; say plainly what is unproven.
 - Write only what someone will act on: code, checks, one ledger, docs the change made wrong. Anything Nate reads carries no word he would not miss.
+- Write every name and sentence in precise, professional English, with no slang, jokes or chat-culture words. A name (file, function, variable, commit, branch) states its role in the domain's own term, one term per concept, the word a specification would use: `deploy_dashboards.sh`, not `push_dashboards.sh`; never manager, util or helper where an exact word exists.

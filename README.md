@@ -29,7 +29,7 @@ Each question comes with a recommended default, and work that doesn't depend on 
 
 | Piece | Loads | What it does |
 |---|---|---|
-| `omp-rules.md` | every session and subagent, always | The floor: ten standing rules in under 2,000 characters |
+| `omp-rules.md` | every session and subagent, always | The floor: eleven standing rules in under 2,500 characters |
 | `skills/nstack` | before features, multi-step changes and agent briefs | The process: size, frame, decide, build, run agents, prove, report |
 | `skills/nstack-design` | big asks: rewrites, new systems, unsettled architecture or look | A one-page shape: requirements by source, verified facts, decisions, the simplest architecture, slices with checks |
 | `skills/nstack-verify` | when proof needs more than the tests, or a number decides something | Proof on the real surface; checks a number before it counts |
@@ -94,7 +94,7 @@ The installer symlinks the skills, commands and extension into `~/.omp/agent/` a
 3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other. The research and verify roles are the Dig and Wave workers of `skills/nstack-research`.
 4. **Install and probe.** Run a fresh omp session on an ordinary-looking task in a scratch repo, and judge it by what the agent actually read, ran and changed, not by what it says it followed.
 
-Keep `omp-rules.md` under 2,000 characters and each skill under 12,000. The rules ride on every turn of every session, so the floor stays short and the detail loads on demand; `--check` enforces both limits.
+Keep `omp-rules.md` under 2,500 characters and each skill under 12,000. The rules ride on every turn of every session, so the floor stays short and the detail loads on demand; `--check` enforces both limits.
 
 ## Credits
 
@@ -103,6 +103,7 @@ Keep `omp-rules.md` under 2,000 characters and each skill under 12,000. The rule
 - [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): the grilling skill behind `nstack-grill`, limited to the important things and run only on request.
 - [helix](https://github.com/DocumentDrivenDX/helix): the no-process-porn skill.
 - [Planning with Agents](https://maggieappleton.com/planning-agents) by Maggie Appleton: agents doing the translating (Proportion), options shown by what they do to the real code, live controls for a continuous taste value, and short grill rounds with "show me".
+- [U.S. Graphics Company](https://x.com/usgraphics/status/2114413710395720182): the floor's line on language and names, from their naming rule ("the word a 1972 IBM engineer would write in a specification") and their observation that a professional register brings better-structured code. A critique in the replies kept the specification register and traded the persona for its rules: the domain's own term, one term per concept, no vague names.
 - [codetesla51/skills](https://github.com/codetesla51/skills): the attack-first test rules in `skills/nstack` §5 and the review's check-the-checks step (go-test-hardening), fakes at the wire and outcome assertions (its mocking reference), starting a fix from the last version that worked and fixing the same mistake elsewhere (debugging), fewer concepts and no silent defaults (go-codebase-cleanup), reverting speed changes inside the noise (perf-optimizer, barrage) and the rejected option in the commit message (code-ownership). That repository has no license, so these are paraphrased ideas; no text was copied.
 
 ## License
