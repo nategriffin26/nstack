@@ -16,7 +16,7 @@ Most of what goes wrong in a big build is set before the first line of code: a f
 ## 2. Architecture
 The goal is the simplest architecture that does what Nate asked, well. Simple wins: it is quick to build, easy to read, and can be extended when a real need shows up. Nothing here requires a feature, safeguard or mechanism; every part of the design traces to something he asked for or something it cannot work without.
 
-- **Start plain**: one process, one store, modules and direct calls, the platform's own facilities, proven libraries. Add a service, queue, cache, interface, option or framework only when he asked for it or the plain version has actually failed, and say why under `Forced by`.
+- **Start plain**: one process, one store, modules and direct calls, the platform's own facilities, proven libraries. Add a service, queue, cache, interface, option or framework only when he asked for it or the plain version has actually failed, and say why under `Forced by`. Name the signal that would call for the next step up: a number or something he would see on his setup ("the read log passes a million rows", "two processes write the same file"), never "if needed".
 - **One source of truth**: each piece of state has one owner and lives in one place; derive what can be derived instead of storing and syncing a copy.
 - **Data model**: it is the hardest part to change later, so it gets the most thought; keep it as small as today's needs allow.
 - **Changes stay local**: a feature's change lands in one obvious place. Slice 1 sets the patterns agents will copy, so keep it plain and give each job one way to do it. Prefer duplication to a wrong abstraction; extract on the third real use.
@@ -46,7 +46,7 @@ Keeps: <each as a check>
 Out: <deliberately excluded>
 Facts: <fact> - <how verified>
 Decided: <decision> - <by Nate | default>
-Architecture: <3-5 lines: the plain shape, its data and who owns it> (considered: <alternative, why not>)
+Architecture: <3-5 lines: the plain shape, its data and who owns it> (considered: <alternative, why not>; changes when: <the signal on his setup>)
 Forced by: <each part beyond the plain shape> - <what he asked for, or why it cannot work without it>
 Seams: <shared contracts each slice honors; who integrates; how it reaches his surface>
 Slices:
