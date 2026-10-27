@@ -107,6 +107,7 @@ Keep `omp-rules.md` under 4,000 characters and each skill under 20,000. The rule
 - [0xdef1](https://x.com/0xdef1/status/2114384292780589327): the ledger kept to its current state with history in an archive file, and the guard's note when it grows past 12 KB (markdown considered harmful); rules recorded in the narrowest file that loads where they apply (no global state in boot docs); repeated commands turned into a small tool (build tools, not rules).
 - [How I work with Agents](https://x.com/thorstenball/status/2114386050638336082) by Thorsten Ball: checking every plausible cause in one pass instead of trying fixes one at a time (`skills/nstack` §2), and the agent session behind a change as a source for `/catchup why`.
 - [codetesla51/skills](https://github.com/codetesla51/skills): the attack-first test rules in `skills/nstack` §5 and the review's check-the-checks step (go-test-hardening), fakes at the wire and outcome assertions (its mocking reference), starting a fix from the last version that worked and fixing the same mistake elsewhere (debugging), fewer concepts and no silent defaults (go-codebase-cleanup), reverting speed changes inside the noise (perf-optimizer, barrage) and the rejected option in the commit message (code-ownership). That repository has no license, so these are paraphrased ideas; no text was copied.
+- [Traits](https://traits.sh/) by Harry Solovay: the review's pass over Nate's recorded picks, testing the diff against each one in turn, from its `check_traits` tool.
 
 ## License
 
