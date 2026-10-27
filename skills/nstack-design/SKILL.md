@@ -36,7 +36,7 @@ Read it against the code once and return one list: wrong facts, open decisions, 
 Batch every `[Nate]` decision into one message (`skill://nstack` §2), each option with its time and usage estimate and your default, and pin the permissions the run will need. Then slice: each slice ends in something he can see on his surface with its check; slice 1 is the thinnest end-to-end path, riskiest unknown first; parallel slices own disjoint modules.
 
 ## 5. The shape
-One page, in the reply and at the top of the ledger `local/nstack/<slug>.md`:
+One page at the top of the ledger `local/nstack/<slug>.md`, written for the agents that build from it:
 
 ```
 Outcome: <Nate's words> / <your reading>
@@ -54,5 +54,7 @@ Slices:
 Log:
 - <time> <what happened>
 ```
+
+Nate reads a version built from this page for him, never the page itself: what he must decide first, then the outcome and where he will check it, the architecture as a small diagram of its parts and who owns each piece of data, the decisions (his and your defaults) and what is out, and the slices by what he will see after each. The ledger keeps the page for builders.
 
 No separate specs, roadmaps or status files unless Nate asks; contracts live in code.
