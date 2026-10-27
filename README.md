@@ -109,6 +109,7 @@ Keep `omp-rules.md` under 4,000 characters and each skill under 20,000. The rule
 - [codetesla51/skills](https://github.com/codetesla51/skills): the attack-first test rules in `skills/nstack` §5 and the review's check-the-checks step (go-test-hardening), fakes at the wire and outcome assertions (its mocking reference), starting a fix from the last version that worked and fixing the same mistake elsewhere (debugging), fewer concepts and no silent defaults (go-codebase-cleanup), reverting speed changes inside the noise (perf-optimizer, barrage) and the rejected option in the commit message (code-ownership). That repository has no license, so these are paraphrased ideas; no text was copied.
 - [Traits](https://traits.sh/) by Harry Solovay: the review's pass over Nate's recorded picks, testing the diff against each one in turn, from its `check_traits` tool.
 - [system-design-skills](https://github.com/proyecto26/system-design-skills) by J.D. Nicholls (MIT): the signal that would call for the next step up, named beside the plain architecture in `nstack-design` (its "change it when" column, a number or observable signal, never "if needed").
+- [How I Design with AI, part 2](https://x.com/reactiverobot/status/2115075879923765615) by Matt Dailey: crux screens that get the taste work in a many-screen feature, and the craft pass's sheet of every state grouped by screen, listed from the code first, with the bugs found on the way (his [ui-sweep](https://github.com/ref-tools/marketplace/tree/main/plugins/ref-skills/skills/ui-sweep) skill, MIT).
 
 ## License
 
