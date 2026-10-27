@@ -40,7 +40,7 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `tools/web.py` | on PATH as `web` | Search (Exa, falling back to TinyFish), read (TinyFish, then Exa, then Wayback), GitHub and Reddit readers, a page store and a log that `web check` holds every citation to; `web mcp` serves search and read over MCP, and `tools/executor-web` is that server as an Executor app |
 | `skills/nstack-formal` | only when asked | Formal verification of the promise where a bug costs most, left behind as a check that reruns with one command |
 | `commands/` | when typed | The slash commands below |
-| `extensions/nstack-guard.ts` | always, as an omp extension | One-line notes at the moments the written rules did not hold: writing to a critic that already gave its verdict, a long brief to an agent that already exists, a subagent past 250K tokens of context, a question while agents run, a ledger past 12 KB, and a pointer back to the ledger after compaction |
+| `extensions/nstack-guard.ts` | always, as an omp extension | One-line notes at the moments the written rules did not hold: writing to a critic that already gave its verdict, a question while agents run, a ledger past 12 KB, and a pointer back to the ledger after compaction |
 | `roster.toml`, `agents/` | at install | Which model does which job; generates omp's agent files and a routing section in `~/.omp/agent/AGENTS.md` |
 | `audit/scripts/` | by hand | The session metrics the rules were tuned against; they read omp's local session store |
 
