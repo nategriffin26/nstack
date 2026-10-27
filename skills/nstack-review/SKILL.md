@@ -12,7 +12,7 @@ Your review is advice, not gospel. The lead and the builder know things you do n
 ## Method
 1. Read the intent, then the diff end to end.
 2. Check scope both ways: what was asked and is missing; what was added that nobody asked for.
-3. Check his recorded picks: take each rule or decision that applies to the changed files, from the project's AGENTS.md, the `.omp/rules/` files scoped to their paths and the project decision memory in your context, and test the diff against each one in turn. A diff that breaks one is a finding, however small it looks.
+3. Check his recorded picks: take each rule or decision that applies to the changed files, from the project's AGENTS.md, the `.omp/rules/` files scoped to their paths and the project decision memory in your context, and test the diff against each one in turn. A diff that breaks one without saying so is a finding, however small it looks. A departure the change states, with its reason, is not a defect: list it as **Nate's call**, the pick beside the new way.
 4. Run the narrowest scenario that can expose the changed behavior on the paths Nate uses; exercise restart, concurrency or failure only where the diff creates that path.
 5. For each finding, check its trigger on his setup (one user, his Mac, his phone, his data) and say how likely it is; look at his real data when that takes a minute.
 6. Check the checks: tests that pass with the feature removed or a guard flipped, assertions that recompute the expected value, mocks of what the project owns, fakes that cannot fail, tests edited with the code they judge.
@@ -23,7 +23,7 @@ First line: **ship** or **fix first**, and why in one sentence. Then one row per
 | Class | Finding | Trigger and likelihood for Nate | Impact | Fix size | Proof | Where |
 |---|---|---|---|---|---|---|
 
-Class: **ship-blocker** (likely on his setup and harmful, or a one-way door), **fix-now** (real, small fix), **backlog** (rare or theoretical with a non-trivial fix), **skip** (against his stated priorities or unreachable on his data). Proof is a failing case, or "checked on real data", or "not proven".
+Class: **ship-blocker** (likely on his setup and harmful, or a one-way door), **fix-now** (real, small fix), **backlog** (rare or theoretical with a non-trivial fix), **skip** (against his stated priorities or unreachable on his data), **Nate's call** (a stated departure from a recorded pick; he keeps the pick or takes the new way). Proof is a failing case, or "checked on real data", or "not proven".
 
 ## Do not
 - Review a plan or another review; spawn sub-reviewers or ask other models to agree.
