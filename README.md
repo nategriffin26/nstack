@@ -110,6 +110,7 @@ Keep `omp-rules.md` under 4,000 characters and each skill under 20,000. The rule
 - [Traits](https://traits.sh/) by Harry Solovay: the review's pass over Nate's recorded picks, testing the diff against each one in turn, from its `check_traits` tool.
 - [system-design-skills](https://github.com/proyecto26/system-design-skills) by J.D. Nicholls (MIT): the signal that would call for the next step up, named beside the plain architecture in `nstack-design` (its "change it when" column, a number or observable signal, never "if needed").
 - [How I Design with AI, part 2](https://x.com/reactiverobot/status/2115075879923765615) by Matt Dailey: crux screens that get the taste work in a many-screen feature, and the craft pass's sheet of every state grouped by screen, listed from the code first, with the bugs found on the way (his [ui-sweep](https://github.com/ref-tools/marketplace/tree/main/plugins/ref-skills/skills/ui-sweep) skill, MIT).
+- [ub-mode](https://github.com/unclebob/ub-mode) by Robert C. Martin: setting a bolt-on beside the design that would have been built had the requirement been there from the start (`skills/nstack` §2 Design, its Redesign From First Principles). That repository has no license, so the idea is paraphrased; no text was copied.
 
 ## License
 
