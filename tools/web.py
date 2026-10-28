@@ -6,9 +6,9 @@
   web read <url>... [--grep REGEX] [--context N] [--max-chars N] [--fresh] [--no-archive] [--json]
   web github <owner>/<repo> [<path>] [--ref R] [--tree] [--filter S] [--grep REGEX]
   web reddit <thread-url> [--sort top new ...]
-  web check <run-dir | dossier.json | note.md>
+  web check <run-dir | dossier.json | note.md | MAP.md>
   web digest <run-dir | dossier.json> [--claims A-B]
-  web save <NOTE.md | SYNTHESIS.md | run-dir> [--title T] [--why W]
+  web save <NOTE.md | SYNTHESIS.md | MAP.md | run-dir> [--title T] [--why W]
   web prior "<question>" [--limit N]
   web log [--since DATE]    web keys [--test]    web gc [--days N]    web mcp
 
@@ -1349,7 +1349,7 @@ X_SITE_HOSTS = {"docs.x.com", "developer.x.com", "developer.twitter.com", "help.
 UGC_HOSTS = X_HOSTS + ("reddit.com", "wikipedia.org", "news.ycombinator.com", "quora.com",
                        "medium.com", "substack.com", "linkedin.com")
 LOGGED_SURFACES = {"search", "fetch", "reddit", "github"}
-DOC_NAMES = ("SYNTHESIS.md", "SYNTHESIS.json", "NOTE.md")
+DOC_NAMES = ("SYNTHESIS.md", "SYNTHESIS.json", "NOTE.md", "MAP.md")
 _NOT_USED = re.compile(r"\bnot (invoked|used|required|needed|called|attempted)\b|\bunused\b|"
                        r"\bno (browser|reddit|github|search|x) (use|calls?|reads?|fetch(es)?)\b|"
                        r"\b0 (calls?|queries|fetches|reads)\b|\bn/a\b", re.I)
@@ -1712,7 +1712,7 @@ def _urls_in_text(text: str) -> list[str]:
 
 
 def note_flags(text: str) -> list[tuple[str, str, str]]:
-    """A Dig note cites [n] in its answer and lists each n under ## Sources as
+    """A Dig note or a Trail map cites [n] in its text and lists each n under ## Sources as
     `[n] title · url`: one URL per number, nothing after it, no URL twice."""
     body, head, rest = text.partition("\n## Sources")
     if not head:
@@ -1740,7 +1740,7 @@ def note_flags(text: str) -> list[tuple[str, str, str]]:
 
 def run_lane_names(run_dir: str) -> set[str]:
     """Bare lane names a run's workers may have logged under."""
-    names = {"Orchestrator", "dig"}
+    names = {"Orchestrator", "dig", "trail"}
     for f in _dossier_files(run_dir):
         label = _lane_label(run_dir, f)
         names.update({label, os.path.basename(label)})
@@ -1801,7 +1801,7 @@ def check_docs(files: list[str], run_dir: str | None, explicit: str | None) -> i
     for f in files:
         with open(f, encoding="utf-8") as fh:
             text = fh.read()
-        if os.path.basename(f) == "NOTE.md":
+        if os.path.basename(f) in ("NOTE.md", "MAP.md"):
             flags += note_flags(text)
         for u in _urls_in_text(text):
             if u not in urls:
@@ -2181,10 +2181,10 @@ def run_nbrain(argv: list[str], text: str | None = None) -> int:
 def run_save(a: argparse.Namespace) -> int:
     target = os.path.abspath(os.path.expanduser(a.target))
     if os.path.isdir(target):
-        found = [os.path.join(target, n) for n in ("SYNTHESIS.md", "NOTE.md")
+        found = [os.path.join(target, n) for n in ("SYNTHESIS.md", "NOTE.md", "MAP.md")
                  if os.path.isfile(os.path.join(target, n))]
         if not found:
-            raise Fatal(f"no SYNTHESIS.md or NOTE.md under {target}")
+            raise Fatal(f"no SYNTHESIS.md, NOTE.md or MAP.md under {target}")
         target = found[0]
     try:
         with open(target, encoding="utf-8") as fh:
@@ -2201,9 +2201,9 @@ def run_save(a: argparse.Namespace) -> int:
         title = m.group(1)
     why = a.why
     if not why:
-        kind = {"NOTE.md": "Dig", "SYNTHESIS.md": "Wave"}.get(os.path.basename(target))
+        kind = {"NOTE.md": "Dig", "SYNTHESIS.md": "Wave", "MAP.md": "Trail"}.get(os.path.basename(target))
         if not kind:
-            raise Fatal(f"{os.path.basename(target)} is not NOTE.md or SYNTHESIS.md; pass --why")
+            raise Fatal(f"{os.path.basename(target)} is not NOTE.md, SYNTHESIS.md or MAP.md; pass --why")
         m = re.search(r"as of (\d{4}-\d{2}-\d{2})", text)
         date = m.group(1) if m else datetime.fromtimestamp(os.path.getmtime(target)).strftime("%Y-%m-%d")
         why = f"research note ({kind}) {os.path.basename(os.path.dirname(target))}, as of {date}"
@@ -2565,10 +2565,10 @@ def build_parser() -> argparse.ArgumentParser:
     add_common(d, wait=False)
     d.set_defaults(func=run_digest)
 
-    sv = sub.add_parser("save", help="save a Dig note or Wave synthesis to nbrain")
-    sv.add_argument("target", help="NOTE.md, SYNTHESIS.md, or a run dir")
+    sv = sub.add_parser("save", help="save a Dig note, Wave synthesis or Trail map to nbrain")
+    sv.add_argument("target", help="NOTE.md, SYNTHESIS.md, MAP.md, or a run dir")
     sv.add_argument("--title", help="default: the first `# ` line")
-    sv.add_argument("--why", help="default: research note (Dig|Wave) <run-slug>, as of <date>")
+    sv.add_argument("--why", help="default: research note (Dig|Wave|Trail) <run-slug>, as of <date>")
     sv.set_defaults(func=run_save)
 
     pr = sub.add_parser("prior", help="earlier research on a question, from nbrain")

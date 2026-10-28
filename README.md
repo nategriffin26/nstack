@@ -35,8 +35,8 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `skills/nstack-verify` | when proof needs more than the tests, or a number decides something | Proof on the real surface; checks a number before it counts |
 | `skills/nstack-review` | reviews and critic verdicts | Findings judged by how likely and how harmful they are on the real setup |
 | `skills/nstack-grill` | only when asked | Rounds of questions to get on the same page before work starts |
-| `skills/nstack-research` | whenever outside facts are needed | Sizes the work as a Look up, a Dig (one agent, a short cited note) or a Wave (research lanes, verification, a synthesis), checks earlier research first and saves what it finds |
-| `skills/nstack-research-worker` | autoloaded into the `researcher` and `verifier` agents | Their field guide: how to search and read, the note, dossier and verification formats, confidence rules |
+| `skills/nstack-research` | whenever outside facts are needed | Sizes the work as a Look up, a Dig (one agent, a short cited note), a Wave (research lanes, verification, a synthesis) or a Trail (one agent walking out from seeds into a space you don't know, a reading map), checks earlier research first and saves what it finds |
+| `skills/nstack-research-worker` | autoloaded into the `researcher` and `verifier` agents | Their field guide: how to search and read, the note, dossier, map and verification formats, confidence rules |
 | `tools/web.py` | on PATH as `web` | Search (Exa, falling back to TinyFish), read (TinyFish, then Exa, then Wayback), GitHub and Reddit readers, a page store and a log that `web check` holds every citation to; `web mcp` serves search and read over MCP, and `tools/executor-web` is that server as an Executor app |
 | `skills/nstack-formal` | only when asked | Formal verification of the promise where a bug costs most, left behind as a check that reruns with one command |
 | `commands/` | when typed | The slash commands below |
@@ -91,7 +91,7 @@ The installer symlinks the skills, commands and extension into `~/.omp/agent/` a
 
 1. **Fork and clone** it anywhere; the installer links from wherever the repository sits. My path (`~/Projects/nstack`) and my model settings page appear only in the routing text `install.py` generates and in `dross.md`.
 2. **Put your name in.** `git grep -n Nate` finds every mention: the rules, skills, commands, agent templates, the guard's notes and that generated routing text. Swap my phone, Mac and data for the places you check your own work.
-3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other. The research and verify roles are the Dig and Wave workers of `skills/nstack-research`.
+3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other. The research and verify roles are the workers of `skills/nstack-research`.
 4. **Install and probe.** Run a fresh omp session on an ordinary-looking task in a scratch repo, and judge it by what the agent actually read, ran and changed, not by what it says it followed.
 
 Keep `omp-rules.md` under 4,000 characters and each skill under 20,000. The rules ride on every turn of every session, so the floor stays short and the detail loads on demand; `--check` enforces both limits.
@@ -112,6 +112,7 @@ Keep `omp-rules.md` under 4,000 characters and each skill under 20,000. The rule
 - [How I Design with AI, part 2](https://x.com/reactiverobot/status/2115075879923765615) by Matt Dailey: crux screens that get the taste work in a many-screen feature, and the craft pass's sheet of every state grouped by screen, listed from the code first, with the bugs found on the way (his [ui-sweep](https://github.com/ref-tools/marketplace/tree/main/plugins/ref-skills/skills/ui-sweep) skill, MIT).
 - [ub-mode](https://github.com/unclebob/ub-mode) by Robert C. Martin: setting a bolt-on beside the design that would have been built had the requirement been there from the start (`skills/nstack` §2 Design, its Redesign From First Principles). That repository has no license, so the idea is paraphrased; no text was copied.
 - [Babysitting AI Agents](https://arxiv.org/abs/2610.34748) by Mittal, Kim, Counts, Neville, Das and Laban (Microsoft Research, Georgia Tech): stopping a unit or loop that has stopped producing new evidence (`skills/nstack` §4), from its finding that running without progress is among the most reported delegation failures, and the report's list of actions the diff will not show (§6), from its finding that the most severe failures are the hardest to notice.
+- [Alpha generation p1: self-editing heartbeats with seeds](https://docs.google.com/document/d/14qXSLPBZENOTmYJMJPQ7xFRtMzm00qCF9foTKqque70/edit) by snbafana: the Trail in `skills/nstack-research`, one agent walking out from seeds that show what good looks like, one lead per step, re-ranking its scratchpad and keeping only what is dense and new.
 
 ## License
 

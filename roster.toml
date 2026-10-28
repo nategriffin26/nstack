@@ -27,7 +27,7 @@ agents = ["muse","gemini"]
 
 [roles.research]
 title = "Research lanes"
-does = "one Dig or one Wave lane of skill://nstack-research each; retrieves through `web`, writes a note or claim-ledger dossier at the assigned absolute path, returns a compact status"
+does = "one Dig, one Wave lane or one Trail of skill://nstack-research each; retrieves through `web`, writes a note, claim-ledger dossier or reading map at the assigned absolute path, returns a compact status"
 agents = ["researcher"]
 
 [roles.verify]
