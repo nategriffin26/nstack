@@ -29,9 +29,9 @@ Exit codes: 0 ok (still read per-URL failure lines); 75 retryable (rate limit: r
 In a Trail, the Trail section below replaces the planning, searching, key-players and stopping points here; the reading, source and quoting points hold for every assignment.
 
 - Before searching, list what the assignment needs answered, what would disprove each item and what kind of source settles it. Keep the list to the end; unanswered rows become gaps.
-- Search one question at a time. Three rephrasings with nothing new: switch vocabulary or source family (papers, docs, code, Reddit, news), or record the gap. Run at least one search with none of the names in your brief, and say what it found that the brief didn't.
+- Search one question at a time. Write queries with no year unless the question names one; for recent material pass `--recency` or `--after` with a date counted back from today, never a year typed from memory, which is usually a year or more behind. Three rephrasings with nothing new: switch vocabulary or source family (papers, docs, code, Reddit, news), or record the gap. Run at least one search with none of the names in your brief, and say what it found that the brief didn't.
 - Read, then write. After each read, state in one line what it established. A claim comes from a page you read, never from a result list.
-- Before you stop, name the three to five studies, products or players the question turns on (what an expert would expect to see cited) and read each or say why it doesn't apply. In the research eval, most missed checks were one key study the worker never found after its first cluster of sources.
+- Before you stop, name the three to five studies, products or players the question turns on (what an expert would expect to see cited) and read each or say why it doesn't apply. In the research eval, most missed checks were one key study the worker never found after its first cluster of sources. That list comes from your memory, which ends months or years before today: also search for what has appeared since (`--recency`), and treat a name you remember as possibly superseded.
 - Stop when new pages stop adding distinct evidence or changing your answer, and record why. There is no search or read budget; never stop at a round number, never pad.
 - Sources, best first: official docs, filings, release notes, papers, model cards, source code, datasets; original research with a visible method; reporting that links its primary; first-person practitioners with specifics; vendors, aggregators, SEO pages. Pages repeating one dataset are one source. A load-bearing number needs two independent roots or is marked single-source. For APIs, models and services, check release status, deprecations and pricing on the official source.
 - Every number, version, model name, release date and license you assert appears verbatim on the page that sentence cites, not on another page or from memory; a license comes from the LICENSE file or the model card's license field. In the eval, about one cited sentence in seven failed this, nearly always a number taken from elsewhere.
@@ -84,6 +84,9 @@ Search only to find a thing a page you read names (a cited paper, an author's si
 Trail · as of YYYY-MM-DD · <run-slug>
 
 <the space in about five lines: what it is about, where the energy is, what is contested>
+
+## Terms
+- <term>: <its meaning in one plain line> [n]   (the words the reads assume; omit what Nate already knows)
 
 ## Read first
 - <title> [n]: <one line on why, for Nate>
