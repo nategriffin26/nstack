@@ -61,7 +61,7 @@ say which points are vendor claims, anecdotes or your inference>
 - <what you couldn't confirm, and what you tried>     (omit when empty)
 ```
 
-Write what Nate needs to act, not the story of your search. Sources rules, each broken in the research eval:
+Write what Nate needs to act, not the story of your search, and give the draft the edit pass in `skill://nstack-writing` before you return. Sources rules, each broken in the research eval:
 - Cite the exact URL whose saved text holds the sentence. A page that came back as a stub or a script shell is not read: cite the variant you actually read (the `.md` page, the docs mirror, the Wayback copy's original URL).
 - One URL per line, nothing after it; each URL once, under one number; every `[n]` in the text has its line.
 - Only pages you read. A search result, a search log or a page that failed to load never goes in Sources; say it in Unsure.

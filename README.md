@@ -29,11 +29,12 @@ Each question comes with a recommended default, and work that doesn't depend on 
 
 | Piece | Loads | What it does |
 |---|---|---|
-| `omp-rules.md` | every session and subagent, always | The floor: eleven standing rules in under 4,000 characters |
+| `omp-rules.md` | every session and subagent, always | The floor: thirteen standing rules in under 4,000 characters |
 | `skills/nstack` | before features, multi-step changes and agent briefs | The process: size, frame, decide, build, run agents, prove, report |
 | `skills/nstack-design` | big asks: rewrites, new systems, unsettled architecture or look | A one-page shape: requirements by source, verified facts, decisions, the simplest architecture, slices with checks |
 | `skills/nstack-verify` | when proof needs more than the tests, or a number decides something | Proof on the real surface; checks a number before it counts |
 | `skills/nstack-review` | reviews and critic verdicts | Findings judged by how likely and how harmful they are on the real setup |
+| `skills/nstack-writing` | before writing prose anyone reads beyond a few lines | Thirty habits that make agent prose read as generated, each with its plain replacement, and one edit pass for long drafts |
 | `skills/nstack-grill` | only when asked | Rounds of questions to get on the same page before work starts |
 | `skills/nstack-research` | whenever outside facts are needed | Sizes the work as a Look up, a Dig (one agent, a short cited note), a Wave (research lanes, verification, a synthesis) or a Trail (one agent walking out from seeds into a space you don't know, a reading map), checks earlier research first and saves what it finds |
 | `skills/nstack-research-worker` | autoloaded into the `researcher` and `verifier` agents | Their field guide: how to search and read, the note, dossier, map and verification formats, confidence rules |
@@ -113,6 +114,7 @@ Keep `omp-rules.md` under 4,000 characters and each skill under 20,000. The rule
 - [ub-mode](https://github.com/unclebob/ub-mode) by Robert C. Martin: setting a bolt-on beside the design that would have been built had the requirement been there from the start (`skills/nstack` §2 Design, its Redesign From First Principles). That repository has no license, so the idea is paraphrased; no text was copied.
 - [Babysitting AI Agents](https://arxiv.org/abs/2610.34748) by Mittal, Kim, Counts, Neville, Das and Laban (Microsoft Research, Georgia Tech): stopping a unit or loop that has stopped producing new evidence (`skills/nstack` §4), from its finding that running without progress is among the most reported delegation failures, and the report's list of actions the diff will not show (§6), from its finding that the most severe failures are the hardest to notice.
 - [Alpha generation p1: self-editing heartbeats with seeds](https://docs.google.com/document/d/14qXSLPBZENOTmYJMJPQ7xFRtMzm00qCF9foTKqque70/edit) by snbafana: the Trail in `skills/nstack-research`, one agent walking out from seeds that show what good looks like, one lead per step, re-ranking its scratchpad and keeping only what is dense and new.
+- [scholarly-paper-revision](https://x.com/__paleologo/status/2116602494428299632) by Giuseppe Paleologo (Gappy): `skills/nstack-writing`, from its section "Correct and avoid AI stylistic tropes", generalized from mathematical papers to reports, notes, docs, commit messages and product copy, with patterns from my agents' own reports added.
 
 ## License
 

@@ -102,6 +102,7 @@ The run is done when Nate's decision is answered in prose, not when the dossiers
 
 - Decision first: ranked options, tradeoffs, your pick for him. Every material claim carries its link inline. Quote from lanes' `datum` fields, never their prose.
 - Label vendor claims, anecdotes, calculations and inferences. Carry confidence where it changes the decision. State gaps; absence of evidence is a finding. No "consensus" or source counts without the ledger behind them.
+- Once the draft stands, give it the edit pass in `skill://nstack-writing` before `web check`.
 - `SYNTHESIS.json`: `{question, asOf, dossiers[], questions[{q, status: answered|gap}], adopted[], rejected[], corrections[], contradictions[], gaps[], synthesisPath}`.
 - `web check <run-dir>` shows 0 FAIL: every URL was read through `web`. Your own reads count when made under a `<run-slug>/` lane. `OTHER_RUN_URL` means an earlier run read it, not this one: fine for reused research, but say which run it comes from.
 - Append to `<project>/local/research/INDEX.md`: `| date | run-slug | question | lanes | verdict (≤200 chars) | SYNTHESIS.json path |`.
