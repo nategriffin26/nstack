@@ -2284,7 +2284,7 @@ def run_keys(a: argparse.Namespace) -> int:
 
 MCP_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
 _STRINGS = {"type": "array", "items": {"type": "string"}}
-MCP_TOOLS = [
+MCP_TOOLS = {t["name"]: t for t in [
     {"name": "search", "title": "Web search",
      "description": "Search the web (Exa; falls back to TinyFish, Brave, Serper). Returns numbered "
                     "results: title · host · date, URL, a clipped highlight. Read a page before "
@@ -2321,7 +2321,7 @@ MCP_TOOLS = [
                          "include_selector": {**_STRINGS, "description": "CSS selectors to keep"},
                          "exclude_selector": {**_STRINGS, "description": "CSS selectors to drop"}}},
      "annotations": {"title": "Read web pages", "readOnlyHint": True, "openWorldHint": True}},
-]
+]}
 
 
 def _strs(v) -> list[str]:
@@ -2339,7 +2339,7 @@ def mcp_argv(name: str, args: dict) -> list[str]:
     starting with '-' is never read as a flag."""
     if not isinstance(args, dict):
         raise ValueError("arguments must be an object")
-    known = MCP_TOOLS[0 if name == "search" else 1]["inputSchema"]["properties"]
+    known = MCP_TOOLS[name]["inputSchema"]["properties"]
     unknown = set(args) - set(known)
     if unknown:
         raise ValueError(f"unknown argument(s): {', '.join(sorted(unknown))}")
@@ -2434,10 +2434,10 @@ def run_mcp(a: argparse.Namespace) -> int:
         elif method == "ping":
             result = {}
         elif method == "tools/list":
-            result = {"tools": MCP_TOOLS}
+            result = {"tools": list(MCP_TOOLS.values())}
         elif method == "tools/call":
             name = params.get("name") if isinstance(params, dict) else None
-            if name not in ("search", "read"):
+            if not isinstance(name, str) or name not in MCP_TOOLS:
                 send({"jsonrpc": "2.0", "id": mid,
                       "error": {"code": -32602, "message": f"unknown tool: {name}"}})
                 continue
