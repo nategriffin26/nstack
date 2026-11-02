@@ -92,9 +92,10 @@ class Fatal(Exception):
 
 
 class HTTPFailure(OSError):
-    def __init__(self, code: int, detail: str):
+    def __init__(self, code: int, detail: str, retry_after: str | None = None):
         super().__init__(f"HTTP {code}: {detail}")
         self.code = code
+        self.retry_after = retry_after
 
 
 def note(msg: str) -> None:
@@ -491,41 +492,29 @@ def request(url: str, *, surface: str, keys: list[str], max_wait: float,
             cost: int = 1, body: dict | None = None, timeout: int = 180,
             retries: int = 5) -> dict:
     """One TinyFish call through the pooled-key rate gate."""
-    data = json.dumps(body).encode() if body is not None else None
     delay = 2.0
     rate_limited = 0
     for attempt in range(retries + 1):
         key = LEDGER.acquire(surface, keys, cost, max_wait)
-        headers = {"X-API-Key": key, "Accept": "application/json"}
-        if data:
-            headers["Content-Type"] = "application/json"
-        req = urllib.request.Request(url, data=data, headers=headers,
-                                     method="POST" if data else "GET")
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return json.loads(resp.read().decode())
-        except urllib.error.HTTPError as exc:  # URLError subclass: must stay first
-            detail = exc.read().decode(errors="replace")[:400]
+            return _json_call(url, {"X-API-Key": key}, body, timeout)
+        except HTTPFailure as exc:
             if exc.code == 429:
                 rate_limited += 1
-                retry_after = float(exc.headers.get("Retry-After") or WINDOW)
+                retry_after = float(exc.retry_after or WINDOW)
                 LEDGER.penalize(surface, key, retry_after)
                 note(f"tinyfish key …{key[-6:]} returned 429; parked {retry_after:.0f}s")
                 continue  # acquire() picks another key or waits it out
-            if exc.code in RETRY_STATUS and attempt < retries:
-                time.sleep(delay)
-                delay *= 2
-                continue
-            if exc.code in RETRY_STATUS:
-                raise Retryable(f"tinyfish {surface} HTTP {exc.code}: {detail}")
-            raise Fatal(f"tinyfish {surface} HTTP {exc.code}: {detail}")
+            if exc.code not in RETRY_STATUS:
+                raise Fatal(f"tinyfish {surface} {exc}")
+            if attempt == retries:
+                raise Retryable(f"tinyfish {surface} {exc}")
         except (OSError, http.client.HTTPException, ValueError) as exc:
             # URLError, socket timeouts, resets, a truncated body: all transient.
-            if attempt < retries:
-                time.sleep(delay)
-                delay *= 2
-                continue
-            raise Retryable(f"tinyfish {surface} transport failure: {exc}")
+            if attempt == retries:
+                raise Retryable(f"tinyfish {surface} transport failure: {exc}")
+        time.sleep(delay)
+        delay *= 2
     if rate_limited:
         raise RateLimited(f"every TinyFish key rate limited for {surface} across "
                           f"{rate_limited} attempts")
@@ -550,7 +539,7 @@ def _json_call(url: str, headers: dict, body: dict | None = None,
             detail = err.get("message") if isinstance(err, dict) else err if isinstance(err, str) else detail
         except (ValueError, AttributeError):
             pass
-        raise HTTPFailure(exc.code, str(detail)[:200])
+        raise HTTPFailure(exc.code, str(detail)[:200], exc.headers.get("Retry-After"))
 
 
 def exa_call(path: str, body: dict, key: str, timeout: int = 60) -> dict:
@@ -2265,16 +2254,13 @@ def run_keys(a: argparse.Namespace) -> int:
     for k in keys:
         LEDGER.acquire("search", [k], 1, a.max_wait)
         url = SEARCH_URL + "?" + urllib.parse.urlencode({"query": "web key probe"})
-        req = urllib.request.Request(url, headers={"X-API-Key": k})
         try:
-            with urllib.request.urlopen(req, timeout=30) as r:
-                n = len(json.loads(r.read().decode()).get("results") or [])
+            n = len(_json_call(url, {"X-API-Key": k}, timeout=30).get("results") or [])
             print(f"  tinyfish {key_id(k)} …{k[-6:]}  ok ({n} results)")
-        except urllib.error.HTTPError as e:
+        except HTTPFailure as e:
             bad += 1
-            print(f"  tinyfish {key_id(k)} …{k[-6:]}  HTTP {e.code} "
-                  f"retry_after={e.headers.get('Retry-After')}")
-        except Exception as e:
+            print(f"  tinyfish {key_id(k)} …{k[-6:]}  HTTP {e.code} retry_after={e.retry_after}")
+        except (OSError, ValueError, http.client.HTTPException) as e:
             bad += 1
             print(f"  tinyfish {key_id(k)} …{k[-6:]}  {e}")
     return 1 if bad else 0
