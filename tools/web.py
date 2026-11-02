@@ -26,6 +26,7 @@ Exit 75: transient (rate limit or outage); re-run the same command. Exit 1: fata
 from __future__ import annotations
 
 import argparse
+import collections
 import contextlib
 import functools
 import hashlib
@@ -924,7 +925,7 @@ def print_header(r: dict, chars: int, path: str) -> None:
     url = r.get("url") or r.get("final_url") or ""
     if r.get("final_url") and canon_url(r["final_url"]) != canon_url(url):
         url += f" -> {r['final_url']}"
-    route = r.get("route") or "tinyfish"
+    route = r["route"]
     if route == "store" and r.get("storedAt"):
         route += f" {r['storedAt'][:10]}"
     print(f"\n===== {url} | {r.get('title') or '(untitled)'} | {chars} chars | saved {path} "
@@ -1036,8 +1037,7 @@ def wayback_recover(errors: list[dict], a: argparse.Namespace) -> list[dict]:
 
 def emit_fetch(payload: dict, pending: list[str], a: argparse.Namespace,
                surface: str = "fetch") -> int:
-    results = payload.get("results", [])
-    errors = payload.get("errors", [])
+    results, errors = payload["results"], payload["errors"]
     plain = a.format == "markdown" and not (a.include_selector or a.exclude_selector)
     texts: list[str] = []
     for r in results:
@@ -1076,9 +1076,7 @@ def emit_fetch(payload: dict, pending: list[str], a: argparse.Namespace,
             else:
                 print(f"\n!!!!! READ FAILED {e.get('url')} :: {e.get('error')} "
                       f"status={e.get('status')} {e.get('candidate_selectors') or ''}")
-        routes: dict[str, int] = {}
-        for r in results:
-            routes[r.get("route") or "tinyfish"] = routes.get(r.get("route") or "tinyfish", 0) + 1
+        routes = collections.Counter(r["route"] for r in results)
         failed = sum(1 for e in errors if not e.get("recovered"))
         tail = f" ({', '.join(f'{n} via {k}' for k, n in routes.items())})" if routes else ""
         tail += f", {failed} failed" if failed else ""
