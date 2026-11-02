@@ -12,9 +12,9 @@
   web prior "<question>" [--limit N]
   web log [--since DATE]    web keys [--test]    web gc [--days N]    web mcp
 
-Search asks Exa; when Exa fails it falls back to TinyFish, Brave, then Serper and
-says which answered. Read serves a stored copy under a day old, else TinyFish,
-then Exa, then the Wayback Machine. Every page read is saved under $WEB_HOME/pages and
+Search asks Exa; when Exa fails it falls back to TinyFish, Brave, Serper, then Parallel,
+and says which answered. Read serves a stored copy under a day old, else TinyFish, then
+Exa, then the Wayback Machine. Every page read is saved under $WEB_HOME/pages and
 logged per lane (--lane or WEB_LANE; a run's lanes are <run-slug>/<Lane>) in
 $WEB_HOME/ledger.db, which check, digest and log read. check also has a decision model
 (Jev, via OpenRouter) score each claim against its cited pages; LOW_SUPPORT marks weak ones.
@@ -2286,7 +2286,7 @@ MCP_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
 _STRINGS = {"type": "array", "items": {"type": "string"}}
 MCP_TOOLS = {t["name"]: t for t in [
     {"name": "search", "title": "Web search",
-     "description": "Search the web (Exa; falls back to TinyFish, Brave, Serper). Returns numbered "
+     "description": f"Search the web ({' -> '.join(PROVIDERS)}, first to answer). Returns numbered "
                     "results: title · host · date, URL, a clipped highlight. Read a page before "
                     "relying on it.",
      "inputSchema": {"type": "object", "additionalProperties": False, "required": ["query"],
@@ -2465,7 +2465,7 @@ def build_parser() -> argparse.ArgumentParser:
                             help="seconds to wait for TinyFish pool capacity before "
                                  "exiting 75 (default %(default)s)")
 
-    s = sub.add_parser("search", help="search the web: Exa, else TinyFish, Brave, Serper")
+    s = sub.add_parser("search", help=f"search the web: {' -> '.join(PROVIDERS)}, first to answer")
     s.add_argument("query")
     s.add_argument("--type", choices=tuple(TYPES), help="result kind")
     s.add_argument("--site", help="only these domains, comma-separated")
