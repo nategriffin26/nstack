@@ -1727,13 +1727,9 @@ def run_lane_names(run_dir: str) -> set[str]:
     for f in _dossier_files(run_dir):
         label = _lane_label(run_dir, f)
         names.update({label, os.path.basename(label)})
-        try:
-            with open(f, encoding="utf-8") as fh:
-                s = json.load(fh).get("slice")
-            if isinstance(s, str) and s:
-                names.add(s)
-        except (OSError, ValueError, AttributeError):
-            continue
+        s = _dossier_slice(f)
+        if s:
+            names.add(s)
     return names
 
 
@@ -1885,6 +1881,15 @@ def _dossier_files(d: str) -> list[str]:
 def _lane_label(d: str, path: str) -> str:
     rel = os.path.relpath(path, d)
     return os.path.splitext(rel)[0]
+
+
+def _dossier_slice(path: str) -> str | None:
+    try:
+        with open(path, encoding="utf-8") as fh:
+            s = json.load(fh).get("slice")
+    except (OSError, ValueError, AttributeError):
+        return None
+    return s if isinstance(s, str) and s else None
 
 
 def _source_urls(data: dict) -> list[str]:
@@ -2053,6 +2058,13 @@ def run_digest(a: argparse.Namespace) -> int:
     target = os.path.expanduser(a.target)
     explicit = LANE if a.lane_explicit else None
     window = _parse_window(a.claims)
+    if os.path.isdir(target) and explicit:
+        files = _dossier_files(target)
+        pick = ([f for f in files if _lane_label(target, f) in (explicit, f"verify/{explicit}")]
+                or [f for f in files if _dossier_slice(f) == explicit])
+        if not pick:
+            raise Fatal(f"no dossier for lane {explicit!r} under {target}")
+        target, explicit = pick[0], None   # --lane picked the dossier; its reads resolve run-scoped
     if os.path.isfile(target):
         res = check_dossier(target, explicit)
         if a.json:
@@ -2065,26 +2077,6 @@ def run_digest(a: argparse.Namespace) -> int:
     if not os.path.isdir(target):
         raise Fatal(f"{target} is neither a file nor a directory")
     files = _dossier_files(target)
-    if explicit:
-        pick = [f for f in files if _lane_label(target, f) in (explicit, f"verify/{explicit}")]
-        if not pick:
-            for f in files:
-                try:
-                    with open(f, encoding="utf-8") as fh:
-                        if json.load(fh).get("slice") == explicit:
-                            pick.append(f)
-                except (OSError, ValueError, AttributeError):
-                    continue
-        if not pick:
-            raise Fatal(f"no dossier for lane {explicit!r} under {target}")
-        res = check_dossier(pick[0], None)   # --lane picked the dossier; its reads resolve run-scoped
-        if a.json:
-            json.dump({"file": pick[0], "lane": res["lane"], "flags": flag_lines(res["flags"]),
-                       "logged": res["logged"], "dossier": res["data"]}, sys.stdout, indent=1)
-            print()
-            return 0
-        print(render_lane(pick[0], res, window))
-        return 0
     if not files:
         print(f"no *.json dossiers under {target}")
         return 0
