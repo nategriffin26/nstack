@@ -682,7 +682,7 @@ def tinyfish_search(a: argparse.Namespace, lo, hi, fallback: bool) -> list[dict]
             break
         got = payload.get("results") or []
         for r in got:
-            k = re.sub(r"^https?://(www\.)?|/$", "", (r.get("url") or "").strip())
+            k = canon_url(r.get("url") or "")
             if k and k not in seen:
                 seen.add(k)
                 rows.append(r)
