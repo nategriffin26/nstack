@@ -824,9 +824,8 @@ def run_search(a: argparse.Namespace) -> int:
 
 def validate_selectors(a: argparse.Namespace) -> None:
     """Reject what the API would reject, before spending a request on it."""
-    for attr in ("include_selector", "exclude_selector"):
-        values = getattr(a, attr, None) or []
-        flag = "--" + attr.replace("_", "-")
+    for flag, values in (("--include-selector", a.include_selector or []),
+                         ("--exclude-selector", a.exclude_selector or [])):
         if len(values) > MAX_SELECTORS:
             raise Fatal(f"{flag}: at most {MAX_SELECTORS} selectors, got {len(values)}")
         for v in values:
@@ -851,7 +850,7 @@ def fetch_urls(urls: list[str], a: argparse.Namespace) -> tuple[dict, list[str]]
     for i in range(0, len(urls), MAX_FETCH_URLS):
         chunk = urls[i:i + MAX_FETCH_URLS]
         body: dict = {"urls": chunk, "format": a.format}
-        if getattr(a, "fresh", False):
+        if a.fresh:
             body["ttl"] = 0
         if a.include_selector:
             body["include_selectors"] = a.include_selector
@@ -1039,15 +1038,13 @@ def emit_fetch(payload: dict, pending: list[str], a: argparse.Namespace,
                surface: str = "fetch") -> int:
     results = payload.get("results", [])
     errors = payload.get("errors", [])
-    fmt = getattr(a, "format", "markdown")
-    plain = fmt == "markdown" and not (getattr(a, "include_selector", None)
-                                       or getattr(a, "exclude_selector", None))
+    plain = a.format == "markdown" and not (a.include_selector or a.exclude_selector)
     texts: list[str] = []
     for r in results:
         text = page_text(r)
         texts.append(text)
         if r.get("route") != "store":
-            r["storePath"] = store_page(r, text, fmt, surface, plain)
+            r["storePath"] = store_page(r, text, a.format, surface, plain)
         LEDGER.record_page(url=r.get("url") or r.get("final_url") or "",
                            final_url=r.get("final_url"), title=r.get("title"),
                            chars=len(text), status="ok", error=None,
@@ -1067,10 +1064,9 @@ def emit_fetch(payload: dict, pending: list[str], a: argparse.Namespace,
         print()
     else:
         truncated = 0
-        pat = getattr(a, "grep_re", None)
         for r, text in zip(results, texts):
-            if pat is not None:
-                print_matches(r, text, r["storePath"], pat, getattr(a, "context", DEFAULT_GREP_CONTEXT))
+            if a.grep_re is not None:
+                print_matches(r, text, r["storePath"], a.grep_re, a.context)
             else:
                 truncated += print_page(r, text, r["storePath"], a.max_chars)
         for e in errors:
@@ -1104,7 +1100,6 @@ def emit_fetch(payload: dict, pending: list[str], a: argparse.Namespace,
 def run_read(a: argparse.Namespace) -> int:
     """Store, then TinyFish, then Exa, then Wayback; results in argument order.
     A local file (a store path from an earlier header) is printed from disk, unlogged."""
-    validate_selectors(a)
     local = [u for u in a.urls if not re.match(r"^[a-z][a-z0-9+.-]*://", u, re.I)
              and os.path.isfile(os.path.expanduser(u))]
     for path in local:
@@ -1277,7 +1272,6 @@ def run_github(a: argparse.Namespace) -> int:
         raise
     r = {"url": url, "final_url": f"https://github.com/{owner}/{repo}/blob/{resolved}/{path}",
          "title": f"{owner}/{repo}:{path}@{resolved}", "text": text, "route": "github"}
-    a.format = "markdown"
     return emit_fetch({"results": [r], "errors": []}, [], a, surface="github")
 
 
@@ -2525,7 +2519,7 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--sort", nargs="+", default=["top", "new"],
                    choices=("top", "new", "best", "controversial", "old", "qa"))
     add_read_opts(r)
-    r.set_defaults(func=run_reddit)
+    r.set_defaults(func=run_reddit, fresh=False)
 
     g = sub.add_parser("github", help="read a repository file, or list the tree")
     g.add_argument("repo", help="<owner>/<repo>, a github.com blob/tree URL, or a raw URL")
@@ -2541,7 +2535,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help="chars each side of a --grep match (default %(default)s)")
     g.add_argument("--json", action="store_true")
     add_common(g, wait=False)
-    g.set_defaults(func=run_github)
+    g.set_defaults(func=run_github, format="markdown", include_selector=None, exclude_selector=None)
 
     c = sub.add_parser("check", help="flags against the ledger and a support score per claim: a run "
                                     "dir's SYNTHESIS or NOTE, a lane dossier, or any .md's URLs")
