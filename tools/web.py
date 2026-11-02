@@ -179,7 +179,7 @@ def cite_key(url: str) -> str:
 
 def store_paths(url: str, fmt: str = "markdown") -> tuple[str, str]:
     h = hashlib.sha1(canon_url(url).encode()).hexdigest()[:16]
-    ext = {"markdown": "md", "html": "html", "json": "json"}.get(fmt, "md")
+    ext = {"markdown": "md", "html": "html", "json": "json"}[fmt]
     return os.path.join(STORE_PATH, f"{h}.{ext}"), os.path.join(STORE_PATH, f"{h}.meta.json")
 
 
@@ -206,7 +206,6 @@ class Ledger:
     plus the durable per-lane record of pages read and searches run."""
 
     def __init__(self, path: str = LEDGER_PATH):
-        self.path = path
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         # Concurrent first-run processes race on WAL conversion and DDL; SQLite
         # returns SQLITE_BUSY for those regardless of busy_timeout.
@@ -1264,17 +1263,13 @@ def run_github(a: argparse.Namespace) -> int:
 
 # ------------------------------------------------------------------- log
 
-def _since_ts(s: str | None) -> float | None:
-    return parse_date(s, "--since").timestamp() if s else None
-
-
 def _ts(ts: float) -> str:
     return datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
 
 
 def run_log(a: argparse.Namespace) -> int:
     lane = LANE if a.lane_explicit else None
-    since = _since_ts(a.since)
+    since = parse_date(a.since, "--since").timestamp() if a.since else None
     pages = distinct_pages(LEDGER.pages(lane, since))
     queries = LEDGER.queries(lane, since)
     ok = [p for p in pages if p["status"] == "ok"]
@@ -1896,13 +1891,6 @@ def _source_urls(data: dict) -> list[str]:
     return [u for u in urls if isinstance(u, str) and u]
 
 
-def _fmt_list(items, indent: str = "  - ") -> list[str]:
-    out = []
-    for it in items or []:
-        out.append(indent + (it if isinstance(it, str) else json.dumps(it, ensure_ascii=False)))
-    return out
-
-
 def render_claim(i: int, c: dict) -> str:
     lines = [f"[{i}] ({c.get('kind') or '?'}, {c.get('confidence') or '?'}) {c.get('claim') or ''}"]
     if c.get("support"):
@@ -1979,7 +1967,8 @@ def render_lane(path: str, res: dict, window: tuple[int, int] | None) -> str:
             else:
                 tail.append(f"  - {x}")
     tail.append("GAPS:" if data.get("gaps") else "GAPS: (none)")
-    tail += _fmt_list(data.get("gaps"))
+    tail += ["  - " + (g if isinstance(g, str) else json.dumps(g, ensure_ascii=False))
+             for g in data.get("gaps") or []]
     tail.append("TOOLHEALTH:" if data.get("toolHealth") else "TOOLHEALTH: (none)")
     for t in data.get("toolHealth") or []:
         if isinstance(t, dict):
