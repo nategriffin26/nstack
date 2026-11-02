@@ -1672,13 +1672,13 @@ def check_dossier(path: str, explicit_lane: str | None = None) -> dict:
     return res
 
 
-def flag_lines(res: dict) -> list[str]:
-    return [f"{lvl} {code} {detail}" for lvl, code, detail in res["flags"]]
+def flag_lines(flags: list[tuple[str, str, str]]) -> list[str]:
+    return [f"{lvl} {code} {detail}" for lvl, code, detail in flags]
 
 
-def flag_summary(res: dict) -> str:
-    n_fail = sum(1 for f in res["flags"] if f[0] == "FAIL")
-    n_warn = sum(1 for f in res["flags"] if f[0] == "WARN")
+def flag_summary(flags: list[tuple[str, str, str]]) -> str:
+    n_fail = sum(1 for f in flags if f[0] == "FAIL")
+    n_warn = sum(1 for f in flags if f[0] == "WARN")
     return f"{n_fail} FAIL, {n_warn} WARN"
 
 
@@ -1836,13 +1836,11 @@ def check_docs(files: list[str], run_dir: str | None, explicit: str | None) -> i
             best = max(c for lane, ts, c in reads if in_run is None or in_run(lane, ts))
             if not repo and best < THIN_PAGE_CHARS:
                 flags.append(("WARN", "THIN_PAGE", f"{u} ({best} chars)"))
-    for lvl, code, detail in flags:
-        print(f"{lvl} {code} {detail}")
-    n_fail = sum(1 for f in flags if f[0] == "FAIL")
-    n_warn = sum(1 for f in flags if f[0] == "WARN")
+    for line in flag_lines(flags):
+        print(line)
     scope = "this run" if in_run is not None else "any lane"
     repo_note = f" ({via_repo} as repository/model roots whose files were read)" if via_repo else ""
-    print(f"[web] check {', '.join(os.path.basename(f) for f in files)}: {n_fail} FAIL, {n_warn} WARN; "
+    print(f"[web] check {', '.join(os.path.basename(f) for f in files)}: {flag_summary(flags)}; "
           f"{len(urls)} URLs, {matched} read by {scope}{repo_note}, {skipped} x.com skipped")
     return 0
 
@@ -1863,11 +1861,11 @@ def run_check(a: argparse.Namespace) -> int:
     if target.endswith(".md"):
         return check_docs([target], None, explicit)
     res = check_dossier(target, explicit)
-    for line in flag_lines(res):
+    for line in flag_lines(res["flags"]):
         print(line)
     kind = res["kind"] or "?"
     n = len(res["data"].get(kind) or []) if isinstance(res["data"], dict) and kind != "?" else 0
-    print(f"[web] check {a.target}: {flag_summary(res)}; lane {res['lane']}, {kind} {n}, "
+    print(f"[web] check {a.target}: {flag_summary(res["flags"])}; lane {res['lane']}, {kind} {n}, "
           f"{res['logged']} logged ok URLs, {res['failed']} failed, "
           f"{res['checkable']} checkable datums, {res['unverified']} unverified")
     return 1 if any(code == "PARSE_ERROR" for _, code, _ in res["flags"]) else 0
@@ -1964,7 +1962,7 @@ def render_lane(path: str, res: dict, window: tuple[int, int] | None) -> str:
     call exceeds the harness elision threshold."""
     data = res["data"]
     if not isinstance(data, dict):
-        return "\n".join(flag_lines(res)) + f"\n[web] digest {path}: {flag_summary(res)}"
+        return "\n".join(flag_lines(res["flags"])) + f"\n[web] digest {path}: {flag_summary(res["flags"])}"
     kind = res["kind"] or "claims"
     items = data.get(kind) or []
     n = len(items)
@@ -1975,7 +1973,7 @@ def render_lane(path: str, res: dict, window: tuple[int, int] | None) -> str:
               f"{res['bytes']} bytes",
               f"VERDICT: {data.get('verdict') or '(none)'}",
               f"STOPPED BECAUSE: {data.get('stoppedBecause') or '(missing)'}",
-              f"CHECK: {flag_summary(res)}"]
+              f"CHECK: {flag_summary(res["flags"])}"]
     tail = []
     if data.get("contradictions"):
         tail.append("CONTRADICTIONS:")
@@ -2000,7 +1998,7 @@ def render_lane(path: str, res: dict, window: tuple[int, int] | None) -> str:
         if k not in KNOWN_KEYS:
             tail.append(f"EXTRA {k}: {json.dumps(data[k], ensure_ascii=False)}")
     tail.append("FLAGS:" if res["flags"] else "FLAGS: (none)")
-    tail += ["  " + line for line in flag_lines(res)]
+    tail += ["  " + line for line in flag_lines(res["flags"])]
 
     render = {"claims": render_claim, "verdicts": render_verdict, "directions": render_direction}[kind]
     lo, hi = window or (1, n)
@@ -2058,7 +2056,7 @@ def run_digest(a: argparse.Namespace) -> int:
     if os.path.isfile(target):
         res = check_dossier(target, explicit)
         if a.json:
-            json.dump({"file": target, "lane": res["lane"], "flags": flag_lines(res),
+            json.dump({"file": target, "lane": res["lane"], "flags": flag_lines(res["flags"]),
                        "logged": res["logged"], "dossier": res["data"]}, sys.stdout, indent=1)
             print()
             return 0
@@ -2081,7 +2079,7 @@ def run_digest(a: argparse.Namespace) -> int:
             raise Fatal(f"no dossier for lane {explicit!r} under {target}")
         res = check_dossier(pick[0], None)   # --lane picked the dossier; its reads resolve run-scoped
         if a.json:
-            json.dump({"file": pick[0], "lane": res["lane"], "flags": flag_lines(res),
+            json.dump({"file": pick[0], "lane": res["lane"], "flags": flag_lines(res["flags"]),
                        "logged": res["logged"], "dossier": res["data"]}, sys.stdout, indent=1)
             print()
             return 0
