@@ -1,6 +1,6 @@
 ---
 name: nstack-verify
-description: Prove work is done where Nate will use it, and vet numbers before they count. Read when the proof needs more than the project's tests (a phone or Mac app, a deploy, a render, real data) and before reporting or acting on a speed, metric, eval or cost number.
+description: Prove work is done where Nate will use it, and vet numbers before they count. Read when the proof needs more than the project's tests (a phone or Mac app, a deploy, a render, real data), before reporting or acting on a speed, metric, eval or cost number, and when speed is the goal of the work.
 ---
 
 # nstack verify
@@ -27,6 +27,12 @@ Before a number decides anything:
 3. For speed, name the limiter from a profile or counters, not from reading code.
 4. If it varies run to run and decides between close options, repeat both sides and report median and range; a gap inside the spread is no difference, and a change made only for speed that shows none is reverted. A number that decides nothing needs only 1 and 2.
 5. State the end-to-end effect on what Nate waits on or sees.
+
+## Speed loop
+When speed is the goal, run it as a loop on one number:
+1. The number: time or throughput on the path he waits on, from his real use where the project records it (its traces, metrics or logs), otherwise timed around that path on real inputs. OpenTelemetry only where the project already exports it or a request crosses processes; a single process needs its profiler and timers.
+2. Each step: name the limiter from a profile, make one change, measure both sides as in Numbers 4, then keep it or revert it. Each step is one ledger row: the change, before, after, kept or reverted.
+3. Stop at his target, or when the last few steps stay inside the spread, and report where the remaining time goes.
 
 ## Evidence
 Each done-check with its proof: the command and output, a screenshot or file path, a URL. Anything unproven is **not verified on <surface>**, with what would verify it. A surface that will be checked again and has no scripted way in gets a small verify script (launch from clean, drive the real path, capture state, clean up), named in the project's AGENTS.md.
