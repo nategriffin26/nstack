@@ -118,15 +118,6 @@ def env_key(var: str) -> str:
     return (os.environ.get(var) or key_from_file(var)).strip()
 
 
-def funded_key() -> str:
-    """TinyFish's one key with wallet funds. Never pooled: omp's built-in
-    web_search spends it outside this ledger."""
-    key = env_key("TINYFISH_API_KEY")
-    if not key:
-        raise Fatal("No funded TinyFish key: set TINYFISH_API_KEY")
-    return key
-
-
 def load_keys() -> list[str]:
     """The free TinyFish pool. Limits are per key, so each key adds a full
     30 searches and 150 fetched URLs a minute."""
