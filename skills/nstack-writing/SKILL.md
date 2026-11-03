@@ -1,6 +1,6 @@
 ---
 name: nstack-writing
-description: The habits that make agent prose read as generated, as editorial cues with plain replacements, and a self-edit pass. Read before writing prose someone will read beyond a few lines (a reply, report, DONE.txt, research note or synthesis, doc, README, commit message, brief to another agent, product copy), and run its pass on a long draft before you save or send it.
+description: "Write prose anyone reads beyond a few lines without the habits that read as generated. Covers reports, DONE.txt, research notes, docs, READMEs, commit messages, briefs and product copy, with plain replacements and a self-edit pass."
 ---
 
 # Writing

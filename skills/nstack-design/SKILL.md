@@ -1,6 +1,6 @@
 ---
 name: nstack-design
-description: The shaping step for big asks. Turns a rewrite, new system or ambiguous program into a one-page shape (requirements tagged by source, verified facts, Nate's decisions, the simplest correct architecture, contracts, slices with done-checks) before builders start. Read for L/XL work, architecture or taste forks, a plan Nate hands you, and Dross design tasks.
+description: "Shape a big ask into a one-page plan before anyone builds. For rewrites, new systems, an unsettled architecture or look, and plans Nate hands you: verified facts, his decisions, the simplest architecture, slices with checks. Read for L/XL work, after nstack."
 ---
 
 # nstack design
