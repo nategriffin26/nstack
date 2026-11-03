@@ -13,6 +13,7 @@ What it manages:
                                           omp skips symlinked command directories
   ~/.omp/agent/extensions/nstack-guard.ts symlink to extensions/nstack-guard.ts
   ~/.local/bin/web                        symlink to tools/web.py, the research tool the research skills call
+  ~/.local/bin/skill-eval                 symlink to tools/skill_eval.py, the routing check nstack-skills calls
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
   ~/.omp/agent/AGENTS.md                  the "Subagent routing" section, generated from roster.toml
   ~/.omp/agent/RULES.md                   marked block from omp-rules.md (always applied by omp)
@@ -242,7 +243,7 @@ def links():
             + [(COMMANDS / p.name, p) for p in sorted((REPO / "commands").glob("*.md"))]
             + [(COMMANDS / p.parent.name / p.name, p) for p in sorted((REPO / "commands").glob("*/index.ts"))]
             + [(EXTENSION, REPO / "extensions" / "nstack-guard.ts")]
-            + [(LOCAL_BIN / "web", REPO / "tools" / "web.py")])
+            + [(LOCAL_BIN / "web", REPO / "tools" / "web.py"), (LOCAL_BIN / "skill-eval", REPO / "tools" / "skill_eval.py")])
 
 
 def generated(path):

@@ -1,6 +1,6 @@
 ---
 name: nstack-review
-description: An independent review of a diff, PR or prototype, each finding calibrated to Nate's real setup and offered as advice. Read when asked to review or audit a change, and when acting as a critic or verdict agent on another agent's work.
+description: "An independent review of a diff, PR, plan or prototype, each finding calibrated to Nate's real setup and offered as advice. Read when asked to review or audit work, or when acting as a critic or verdict agent. Not for finding and fixing bugs Nate reports; that is the fix path in nstack."
 ---
 
 # nstack review
