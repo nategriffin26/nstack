@@ -4,7 +4,6 @@
   python3 install.py              back up, then install (idempotent); ends with --check
   python3 install.py --check      verify the installed state; exit 1 on any problem
   python3 install.py --uninstall  remove nstack and restore what the first install replaced
-  python3 install.py --no-dross   leave Dross's home AGENTS.md alone (combines with the above)
 
 What it manages:
   ~/.omp/agent/skills/<name>              symlinks to skills/<name>; other nstack* skills are removed
@@ -17,8 +16,6 @@ What it manages:
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
   ~/.omp/agent/AGENTS.md                  the "Subagent routing" section, generated from roster.toml
   ~/.omp/agent/RULES.md                   marked block from omp-rules.md (always applied by omp)
-  $DROSS_HOME/home/AGENTS.md              marked block from dross.md (Context's live home: DROSS_HOME, else
-                                          ~/.context-dross, as LIVE_HOME in its apps/dross/src/config.ts)
 
 roster.toml is nstack's only model input; Dross Settings › Models edits its agents' models. Rerun this script to render it.
 Before the first install changes anything, every managed path is copied to local/backups/baseline/
@@ -40,7 +37,6 @@ EXTENSION = OMP / "extensions" / "nstack-guard.ts"
 RULES = OMP / "RULES.md"
 OMP_AGENTS = OMP / "AGENTS.md"
 LOCAL_BIN = HOME / ".local" / "bin"
-DROSS_AGENTS = Path(os.environ.get("DROSS_HOME") or HOME / ".context-dross").resolve() / "home" / "AGENTS.md"
 CONTRACTS = [HOME / "Projects/context-wt/next/apps/core/src/factory/context.contract.json",
              HOME / "Projects/context/apps/core/src/factory/context.contract.json"]
 BACKUPS = REPO / "local" / "backups"
@@ -254,10 +250,10 @@ def stale_agents(r):
     return [p for p in AGENT_DIR.glob("*.md") if p.stem not in r["agents"] and generated(p)]
 
 
-def backup(dross, r):
+def backup(r):
     """Copy every path an install may replace. The first backup is the baseline uninstall restores."""
     targets = ([p for p, _ in links()] + list(SKILLS.glob("nstack*")) + [AGENT_DIR / f"{n}.md" for n in r["agents"]]
-               + [RULES, OMP_AGENTS] + ([DROSS_AGENTS] if dross else []))
+               + [RULES, OMP_AGENTS])
     BACKUPS.mkdir(parents=True, exist_ok=True)
     first = not (BASELINE / "manifest.json").exists()
     dest = BASELINE if first else Path(tempfile.mkdtemp(prefix=time.strftime("%Y%m%d-%H%M%S-"), dir=BACKUPS))
@@ -274,12 +270,12 @@ def backup(dross, r):
 
 # ---------- commands ----------
 
-def install(dross):
+def install():
     r = load_roster()
     problems = roster_problems(r) or model_problems(r) + config_problems(r, [])
     if problems:
         sys.exit("\n".join(f"FAIL {p}" for p in problems) + "\nnothing installed")
-    dest = backup(dross, r)
+    dest = backup(r)
     names = [p.name for p, _ in links() if p.parent == SKILLS]
     for old in SKILLS.glob("nstack*"):
         if old.name not in names:
@@ -295,12 +291,10 @@ def install(dross):
         p.unlink()
     upsert_section(OMP_AGENTS, wrap(routing(r)), ROUTING_HEADING)
     upsert_block(RULES, rendered("omp-rules.md"))
-    if dross and DROSS_AGENTS.exists():
-        upsert_block(DROSS_AGENTS, rendered("dross.md"), anchor="\n## Email")
     print(f"installed {', '.join(names)} and agents {', '.join(r['agents'])}; backup at {dest}")
 
 
-def uninstall(dross):
+def uninstall():
     for path, source in links():
         if path.is_symlink() and path.resolve() == source.resolve():
             path.unlink()
@@ -312,8 +306,6 @@ def uninstall(dross):
     remove_block(RULES)
     if RULES.exists() and not RULES.read_text().strip():
         RULES.unlink()
-    if dross:
-        remove_block(DROSS_AGENTS)
     manifest_path = BASELINE / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     original = BASELINE / (manifest.get(str(OMP_AGENTS)) or "missing")
@@ -428,7 +420,7 @@ def config_warnings(r):
     return warnings
 
 
-def check(dross):
+def check():
     problems = []
     r = load_roster()
     problems += roster_problems(r)
@@ -463,10 +455,6 @@ def check(dross):
         if not OMP_AGENTS.exists() or wrap(routing(r)) not in OMP_AGENTS.read_text():
             problems.append(f"{OMP_AGENTS} lacks the current routing section from the roster")
         targets = [(RULES, "omp-rules.md")]
-        if dross and DROSS_AGENTS.exists():
-            targets.append((DROSS_AGENTS, "dross.md"))
-        elif dross:
-            print("WARN", f"{DROSS_AGENTS} does not exist, so Dross's nstack block was not installed or checked")
         for path, source in targets:
             if not path.exists() or rendered(source) not in path.read_text():
                 problems.append(f"{path} lacks the current block from {source}")
@@ -494,11 +482,10 @@ if __name__ == "__main__":
             BASELINE = BACKUPS / "baseline"
     if "--catalog" in sys.argv:
         CATALOG = Path(sys.argv[sys.argv.index("--catalog") + 1]).resolve()
-    dross = "--no-dross" not in args
     if "--check" in args:
-        sys.exit(0 if check(dross) else 1)
+        sys.exit(0 if check() else 1)
     if "--uninstall" in args:
-        uninstall(dross)
+        uninstall()
     else:
-        install(dross)
-        sys.exit(0 if check(dross) else 1)
+        install()
+        sys.exit(0 if check() else 1)

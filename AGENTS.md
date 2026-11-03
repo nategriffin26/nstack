@@ -5,4 +5,3 @@ The source of Nate's agent stack: rules (`omp-rules.md`), skills, agents, comman
 ## Decisions
 
 - A change to the ruleset is followed by a sweep of the whole ruleset for gaps. Guidance missing by omission is a defect even when nothing in it is wrong; a review that only hunts incorrect statements never sees a silent gap.
-- `web log` lists pages read from the read log: the last N pages, newest first, with the lane and the provider on each entry.

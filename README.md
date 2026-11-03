@@ -48,8 +48,6 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `roster.toml`, `agents/` | at install | Which model does which job; generates omp's agent files and a routing section in `~/.omp/agent/AGENTS.md` |
 | `audit/scripts/` | by hand | The session metrics the rules were tuned against; they read omp's local session store |
 
-`dross.md` is an intake block for my personal assistant; the installer skips it when the assistant isn't there.
-
 ## Commands
 
 | Command | Does |
@@ -94,7 +92,7 @@ The installer symlinks the skills, commands and extension into `~/.omp/agent/` `
 
 ## Make it yours
 
-1. **Fork and clone** it anywhere; the installer links from wherever the repository sits. My path (`~/Projects/nstack`) and my model settings page appear only in the routing text `install.py` generates and in `dross.md`.
+1. **Fork and clone** it anywhere; the installer links from wherever the repository sits. My path (`~/Projects/nstack`) and my model settings page appear only in the routing text `install.py` generates.
 2. **Put your name in.** `git grep -n Nate` finds every mention: the rules, skills, commands, agent templates, the guard's notes and that generated routing text. Swap my phone, Mac and data for the places you check your own work.
 3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other. The research and verify roles are the workers of `skills/nstack-research`.
 4. **Install and probe.** Run a fresh omp session on an ordinary-looking task in a scratch repo, and judge it by what the agent actually read, ran and changed, not by what it says it followed.
