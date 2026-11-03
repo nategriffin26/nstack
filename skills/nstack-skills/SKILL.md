@@ -11,10 +11,10 @@ A skill tells a future agent how Nate wants one kind of work done. Its descripti
 
 | Store | Files | Write with | Old versions | What the router sees |
 |---|---|---|---|---|
-| nstack and omp | `~/Projects/nstack/skills/<name>/` and other repos, linked into `~/.omp/agent/skills` | edit the repo file; omp shows only names matching `skills.includeSkills` in `~/.omp/agent/config.yml` | git | a hint of at most 12 words that omp's small model compresses from the description; when the compression is unusable, the first sentence or first 99 characters |
+| nstack and omp | `~/Projects/nstack/skills/<name>/` and other repos, linked into `~/.omp/agent/skills` | edit the repo file; omp shows only names matching `skills.includeSkills` in `~/.omp/agent/config.yml` | git; a skill directory outside any repo (`cua`, `remote-auth` in `~/.omp/agent/skills`) has none | a hint of at most 12 words that omp's small model compresses from the description; when the compression is unusable, the first sentence or first 99 characters |
 | Dross | Postgres `agent_skills` (the repo copies in `infra/dross/skills` are seeds) | `skill_create`, `skill_update` | every update and delete keeps the old row in `dross.skill_versions` (commands below) | the full description |
 | brain | `~/.brain/context/{skills,styles}` | `skill_save`, after `skill_get {"name":"write-skill"}` for the brain's own steps | git, a signed commit per save | the first sentence, cut at 200 characters |
-| Claude Code | `~/.claude/skills` | edit the file | none | the full description |
+| Claude Code | `~/.claude/skills` | edit the file | git for linked skills; none for plain directories | the full description |
 
 Dross's versions, from `~/Projects/dross` with its environment loaded (`set -a; . infra/dross/env; . ~/.dross/secrets.env; set +a`): `node --import tsx apps/core/scripts/team.ts skill-history <name>` lists them, `skill-history <name> <version>` prints one, `skill-restore <name> <version>` makes it current again.
 
@@ -26,7 +26,7 @@ Dross's versions, from `~/Projects/dross` with its environment loaded (`set -a; 
    - A skill already covers this job: update it. Merge your change into the body you read; a rewrite from memory drops rules that took sessions to learn.
    - Two skills would load for the same request: merge them into one. Two same-job skills loaded together each lose a third of their rules.
    - It is a distinct job: create it.
-   - A skill nobody loads in real use, or one a newer skill replaced: retire it (delete the Dross row or the directory; history keeps it).
+   - A skill nobody loads in real use, or one a newer skill replaced: retire it: delete the Dross row or a directory inside a git repo (their history keeps it); move a directory outside git to `~/Projects/nstack/local/backups/` instead.
 
 ## The name and description
 
@@ -58,7 +58,7 @@ Fill `references/template.md`. The bar:
 
 ## Save and tell Nate
 
-- nstack and other repos: commit (nstack: push after the personal-information check). Dross: `skill_update`, which keeps the old version. Brain: `skill_save` with the digest you read as `base`.
+- nstack and other repos: commit (nstack: push after the personal-information check). A skill directory outside git: copy it to `~/Projects/nstack/local/backups/` before editing. Dross: `skill_update`, which keeps the old version. Brain: `skill_save` with the digest you read as `base`.
 - Tell Nate in one line: the skill, what it now says or does differently, and how to undo it.
 
 ## When a skill misfires
