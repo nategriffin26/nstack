@@ -10,7 +10,7 @@ What it manages:
   ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack, catchup)
   ~/.omp/agent/commands/<name>/index.ts   symlinks to commands/<name>/index.ts (improve), in a real directory because
                                           omp skips symlinked command directories
-  ~/.omp/agent/extensions/nstack-guard.ts symlink to extensions/nstack-guard.ts
+  ~/.omp/agent/extensions/<name>.ts       symlinks to extensions/*.ts (nstack-guard, brief)
   ~/.local/bin/web                        symlink to tools/web.py, the research tool the research skills call
   ~/.local/bin/skill-eval                 symlink to tools/skill_eval.py, the routing check nstack-skills calls
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
@@ -33,7 +33,7 @@ OMP = HOME / ".omp" / "agent"
 SKILLS = OMP / "skills"
 COMMANDS = OMP / "commands"
 AGENT_DIR = OMP / "agents"
-EXTENSION = OMP / "extensions" / "nstack-guard.ts"
+EXTENSIONS = OMP / "extensions"
 RULES = OMP / "RULES.md"
 OMP_AGENTS = OMP / "AGENTS.md"
 LOCAL_BIN = HOME / ".local" / "bin"
@@ -238,7 +238,7 @@ def links():
     return ([(SKILLS / p.name, p) for p in sorted((REPO / "skills").iterdir()) if (p / "SKILL.md").is_file()]
             + [(COMMANDS / p.name, p) for p in sorted((REPO / "commands").glob("*.md"))]
             + [(COMMANDS / p.parent.name / p.name, p) for p in sorted((REPO / "commands").glob("*/index.ts"))]
-            + [(EXTENSION, REPO / "extensions" / "nstack-guard.ts")]
+            + [(EXTENSIONS / p.name, p) for p in sorted((REPO / "extensions").glob("*.ts"))]
             + [(LOCAL_BIN / "web", REPO / "tools" / "web.py"), (LOCAL_BIN / "skill-eval", REPO / "tools" / "skill_eval.py")])
 
 

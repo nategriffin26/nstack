@@ -45,6 +45,8 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `skills/nstack-formal` | only when asked | Formal verification of the promise where a bug costs most, with a model checker, a verifier or deterministic simulation of the real code, left behind as a check that reruns with one command |
 | `commands/` | when typed | The slash commands below |
 | `extensions/nstack-guard.ts` | always, as an omp extension | One-line notes at the moments the written rules did not hold: writing to a critic that already gave its verdict, a question while agents run, a ledger past 12 KB, and a pointer back to the ledger after compaction |
+| `extensions/brief.ts`, `extensions/brief.md` | when typed, as `/brief` | A briefing agent reads the request and the code, docs and history it touches, then sends the brief it writes as your prompt in the same session |
+| `tools/brief_eval.py` | by hand | Measures `/brief`: replays real past requests in sandboxed clones of the repo at the time, briefed and direct, and has a model from another family judge each first reply against a hindsight rubric; tasks and results stay private in `local/evals/brief/` |
 | `roster.toml`, `agents/` | at install | Which model does which job; generates omp's agent files and a routing section in `~/.omp/agent/AGENTS.md` |
 | `audit/scripts/` | by hand | The session metrics the rules were tuned against; they read omp's local session store |
 
@@ -61,6 +63,7 @@ Each question comes with a recommended default, and work that doesn't depend on 
 | `/nstack correct <mistake>` | For a mistake that keeps coming back: finds its past instances and fixes it in structure (architecture, a type, a check whose error names the fix), proven against a real past instance |
 | `/nstack simplify [area]` | Makes an area smaller without changing what it does: merges modules that do too little, removes duplicate definitions, dead code and leftover workarounds, one commit each, and records the files touched per commit for the next pass to compare |
 | `/catchup` | Catches you up: what needs you, what changed, what is still running. `/catchup how/why <thing>` explains how or why something works, grounded in the code and its history; `/catchup <what's unclear>` re-explains the last reply plainly |
+| `/brief <request>` | A briefing agent investigates first and writes the prompt: your words quoted, the facts and recorded decisions that bear on them, the questions only you can answer, and what done looks like. The brief is then sent in this session, and the agent works from it. The status line shows the briefer's steps |
 | `/improve <prompt>` | Before running a prompt: weighs what the result is worth, names who you would hire for it, the one move the prompt leaves out, the rawest source and one outside check that could prove it wrong, then rewrites the prompt with that check as evidence to report, a budget and a point to stop |
 
 ## Asking well
@@ -84,7 +87,7 @@ python3 install.py --check      # verify links, generated files, rule blocks, si
 python3 install.py --uninstall  # remove nstack and restore what the first install replaced
 ```
 
-The installer symlinks the skills, commands and extension into `~/.omp/agent/` `tools/web.py` to `~/.local/bin/web` and `tools/skill_eval.py` to `~/.local/bin/skill-eval`, generates one agent file per roster agent, and writes marked blocks into `~/.omp/agent/RULES.md` and `~/.omp/agent/AGENTS.md`. The first install backs up everything it touches to `local/backups/baseline/`, and `--uninstall` restores from there; every later install writes a dated backup too. Edit files in the repository, never the installed copies, and rerun the installer.
+The installer symlinks the skills, commands and extensions into `~/.omp/agent/` `tools/web.py` to `~/.local/bin/web` and `tools/skill_eval.py` to `~/.local/bin/skill-eval`, generates one agent file per roster agent, and writes marked blocks into `~/.omp/agent/RULES.md` and `~/.omp/agent/AGENTS.md`. The first install backs up everything it touches to `local/backups/baseline/`, and `--uninstall` restores from there; every later install writes a dated backup too. Edit files in the repository, never the installed copies, and rerun the installer.
 
 `web` reads its keys from the environment or `~/.omp/agent/keys.env`: `EXA_API_KEY` for search, `TINYFISH_API_KEYS` (comma-separated free keys) for reading and as the search fallback, optionally `BRAVE_API_KEY` and `SERPER_API_KEY`, and `OPENROUTER_API_KEY` for the support score `web check` gives each claim (Jev, about $0.04 per million input tokens; without the key check skips it and says so). `web save` and `web prior` keep research in [nbrain](https://github.com/nategriffin26/nbrain) when its CLI is on PATH.
 
