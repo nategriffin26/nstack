@@ -7,12 +7,12 @@ agents = ["opus"]
 
 [roles.systems]
 title = "Hard systems work"
-does = "complex debugging, concurrency, performance, invariants, security, large migrations, reverse engineering, computer and browser use"
+does = "complex debugging, concurrency, performance, invariants, security, large migrations, reverse engineering, computer and browser use; not anything visual, which goes to taste-critical work"
 agents = ["astra"]
 
 [roles.taste]
 title = "Taste-critical work"
-does = "visual, motion, audio, UX and product direction"
+does = "anything remotely visual (screens, layout, navigation, transitions, drawings, images, icons), including bugs and debugging in it, plus motion, audio, UX and product direction"
 agents = ["opus"]
 
 [roles.implementer]
