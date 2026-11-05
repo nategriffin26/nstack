@@ -67,8 +67,8 @@ One pass. Polishing in loops flattens the voice and costs more than it returns.
 
 - **Status reports and DONE.txt**: process story, self-praise, arrows, "the real", defensive asides, caveats repeated across lines.
 - **Research notes and syntheses**: verdict slogans, counted packages, bold leads, theatrical disclaimers, vague attribution, recap tables, internal lane names.
-- **Docs and READMEs**: slogan headings, explaining headings, promotional words, roadmaps.
-- **Commit messages**: the subject says what changed; no "This commit…", no "cleanly" or "robust", no diff restated; the body gives why and the option it beat.
+- **Docs and READMEs**: slogan headings, explaining headings, promotional words, roadmaps; in a README or AGENTS.md, what the project used to do or the conversation behind a change (a CHANGELOG records history by design).
+- **Commit messages and PR descriptions**: the subject says what changed; no "This commit…", no "cleanly" or "robust", no diff restated; the body gives why and the option it beat. Before and after belong here; the conversation does not ("as requested", "as you asked", "per our discussion"), because a reader of the log never saw it.
 - **Product copy**: promotional words, announced importance ("Important:"), helper text that restates the label (the word pass in `skill://nstack` covers the rest).
 - **Briefs to agents**: Nate's words stay verbatim; the agent's own framing around them follows the catalog.
 
