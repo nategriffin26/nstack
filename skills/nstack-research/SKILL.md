@@ -90,7 +90,7 @@ Don't paste tool instructions; workers carry their field guide. While lanes run,
 - FAIL (parse error, stub, snippet-only claim, cited URL never read, most quotes not on the page): retry that lane once at the same path, defect named. WARN (all high, tier cap, toolHealth against the log): treat the lane as medium at best and say so. `LOW_SUPPORT` is a cheap model (Jev) scoring a claim against its cited pages below 0.3: it catches about half the unsupported claims and wrongly flags about one supported claim in sixteen, so it marks claims to check, never claims to drop. A passing quote match is weak evidence: any shared number passes it.
 - A missing artifact: glob the run dir's parents before calling it lost, then retry once. A provider refusal (such as PROHIBITED_CONTENT) is retried once as is, then recorded in `gaps`.
 - Merge claims by meaning and canonical URL. Five pages repeating one vendor dataset are one root. Every conflicting number, date or recommendation goes to `contradictions` with a resolution or `unresolved` and why.
-- Draft, then one gap round. Write the draft synthesis from the dossiers before anything else, then mark its weakest, contested and missing parts (every `questions[]` still at `gap` among them) and send 1–3 narrow lanes at those, the first wave's findings given as facts. Searching from what the draft lacks is what moved quality most in published deep-research systems (deep-research-practice-2026-10); a wave that never doubles back stays wide and shallow. Skip the round only when the draft has no gap a lane could close. Never a loop: what survives it is reported as a gap.
+- Draft, then one gap round. Write the draft synthesis from the dossiers before anything else, then mark its weakest, contested and missing parts (every `questions[]` still at `gap` among them) and send 1–3 narrow lanes at those, the first wave's findings given as facts. Searching from what the draft lacks moved quality most in published deep-research systems; a wave that never doubles back stays wide and shallow. Skip the round only when the draft has no gap a lane could close. Never a loop: what survives it is reported as a gap.
 
 ### Verify
 
@@ -111,7 +111,3 @@ The run is done when Nate's decision is answered in prose, not when the dossiers
 ## Handoff before code
 
 Research that feeds a build ends with a handoff the builder reads before any plan or code: adopted and rejected findings with confidence and links; the exact versions and endpoints read; gates (licenses, approvals, access requests, limits) as their own list; decisions made and still open; acceptance checks. A gate found in research and missing from the handoff is how a build stalls later.
-
-## From bots
-
-Dross and the box bots search and read through Executor's `web` app (`search`, `read`), which logs to the same ledger. For a Dig, a Wave or a Trail they start an omp worker with `Dig:`, `Wave:` or `Trail:` and the question or topic; the worker follows this skill, saves to nbrain, and replies with the answer, its links and the note's path.

@@ -7,9 +7,7 @@
 
 What it manages:
   ~/.omp/agent/skills/<name>              symlinks to skills/<name>; other nstack* skills are removed
-  ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack, catchup)
-  ~/.omp/agent/commands/<name>/index.ts   symlinks to commands/<name>/index.ts (improve), in a real directory because
-                                          omp skips symlinked command directories
+  ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack)
   ~/.omp/agent/extensions/<name>.ts       symlinks to extensions/*.ts (nstack-guard, brief)
   ~/.local/bin/web                        symlink to tools/web.py, the research tool the research skills call
   ~/.local/bin/skill-eval                 symlink to tools/skill_eval.py, the routing check nstack-skills calls
@@ -19,7 +17,8 @@ What it manages:
 
 roster.toml is nstack's only model input; Dross Settings › Models edits its agents' models. Rerun this script to render it.
 Before the first install changes anything, every managed path is copied to local/backups/baseline/
-with manifest.json; --uninstall restores from it. Every later install also writes a dated backup.
+with manifest.json; --uninstall restores from it. Every later install also writes a dated backup, and removes links
+into this repository that no current file backs (a skill or command since deleted).
 """
 import json, os, re, shutil, subprocess, sys, tempfile, time, tomllib
 from fnmatch import fnmatchcase
@@ -37,8 +36,6 @@ EXTENSIONS = OMP / "extensions"
 RULES = OMP / "RULES.md"
 OMP_AGENTS = OMP / "AGENTS.md"
 LOCAL_BIN = HOME / ".local" / "bin"
-CONTRACTS = [HOME / "Projects/context-wt/next/apps/core/src/factory/context.contract.json",
-             HOME / "Projects/context/apps/core/src/factory/context.contract.json"]
 BACKUPS = REPO / "local" / "backups"
 BASELINE = BACKUPS / "baseline"
 BEGIN, END = "<!-- nstack:begin -->", "<!-- nstack:end -->"
@@ -237,9 +234,22 @@ def links():
     """(installed path, repo source) for every symlink nstack owns."""
     return ([(SKILLS / p.name, p) for p in sorted((REPO / "skills").iterdir()) if (p / "SKILL.md").is_file()]
             + [(COMMANDS / p.name, p) for p in sorted((REPO / "commands").glob("*.md"))]
-            + [(COMMANDS / p.parent.name / p.name, p) for p in sorted((REPO / "commands").glob("*/index.ts"))]
             + [(EXTENSIONS / p.name, p) for p in sorted((REPO / "extensions").glob("*.ts"))]
             + [(LOCAL_BIN / "web", REPO / "tools" / "web.py"), (LOCAL_BIN / "skill-eval", REPO / "tools" / "skill_eval.py")])
+
+
+def stale_links():
+    """Installed symlinks into this repository whose target no longer exists, such as a deleted skill or command."""
+    entries = [p for root in (SKILLS, COMMANDS, EXTENSIONS, LOCAL_BIN) if root.is_dir() for p in root.iterdir()]
+    entries += [p for d in list(entries) if d.parent == COMMANDS and d.is_dir() and not d.is_symlink() for p in d.iterdir()]
+    return [p for p in entries if p.is_symlink() and not p.exists() and Path(os.readlink(p)).is_relative_to(REPO)]
+
+
+def remove_stale_links():
+    for p in stale_links():
+        p.unlink()
+        if p.parent.parent == COMMANDS and not any(p.parent.iterdir()):
+            p.parent.rmdir()
 
 
 def generated(path):
@@ -284,6 +294,7 @@ def install():
         remove(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.symlink_to(source)
+    remove_stale_links()
     AGENT_DIR.mkdir(parents=True, exist_ok=True)
     for name in r["agents"]:
         (AGENT_DIR / f"{name}.md").write_text(agent_file(r, name))
@@ -298,8 +309,7 @@ def uninstall():
     for path, source in links():
         if path.is_symlink() and path.resolve() == source.resolve():
             path.unlink()
-            if path.parent.parent == COMMANDS and not any(path.parent.iterdir()):
-                path.parent.rmdir()
+    remove_stale_links()
     for p in AGENT_DIR.glob("*.md"):
         if generated(p):
             p.unlink()
@@ -439,6 +449,7 @@ def check():
         if not (path.is_symlink() and path.resolve() == source.resolve()):
             problems.append(f"{path} is not linked to {source.relative_to(REPO)}")
     problems += [f"stale skill {p} is still installed" for p in SKILLS.glob("nstack*") if p.name not in skill_names]
+    problems += [f"{p} links into the repository but no current file backs it; rerun install.py" for p in stale_links()]
     if not roster_problems(r):
         for name in r["agents"]:
             path, want = AGENT_DIR / f"{name}.md", agent_file(r, name)
@@ -462,11 +473,6 @@ def check():
         problems += config_problems(r, skill_names)
         for w in config_warnings(r):
             print("WARN", w)
-    for contract in CONTRACTS:
-        if contract.exists():
-            for task_type, name in json.loads(contract.read_text()).get("standards", {}).items():
-                if name not in skill_names:
-                    problems.append(f"{contract}: taskType {task_type} maps to {name}, which nstack does not ship")
     for p in problems:
         print("FAIL", p)
     print("ok" if not problems else f"{len(problems)} problem(s)")

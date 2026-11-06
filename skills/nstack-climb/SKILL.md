@@ -14,7 +14,7 @@ A worker changes the work in rounds; after each round, fresh judges from other c
 
 ## Not for
 - Reviewing a diff or plan for what to cut: `nstack-review`.
-- Choosing among new directions when the look is unsettled: Nate picks from previews (`nstack` §2 Taste; Dross's design lab). Run the climb after his pick.
+- Choosing among new directions when the look is unsettled: Nate picks from previews (`skill://nstack` › Taste; Dross's design lab). Run the climb after his pick.
 - Work with a programmatic score (tests, an eval, a benchmark, a size budget): hill-climb that number directly; model judges add noise.
 
 ## The bar

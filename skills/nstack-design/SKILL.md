@@ -5,38 +5,22 @@ description: "Shape a big ask into a one-page plan before anyone builds. For rew
 
 # nstack design
 
-Most of what goes wrong in a big build is set before the first line of code: a fact assumed, taste built before Nate saw it, a design too broad to verify, a keep dropped, a wish built as a requirement. The shape is the one page the build runs on. A simple architecture matters more than anything else on it.
+Most of what goes wrong in a big build is set before the first line of code: a fact assumed, a keep dropped, a wish built as a requirement, taste built before Nate saw it, a design too broad to verify. The shape is the one page the build runs on, and its architecture follows `skill://nstack` › Design.
 
-## 1. Ground
+## Ground
 - Read the code and system the work touches: data shapes, who owns each piece of state, the seams (APIs, processes, devices, deploy and restart paths).
-- Requirements: what it must do and the numbers that matter. Tag each **Nate** (he asked), **forced** (it cannot work at all on his setup without it) or **wish**. A wish gets nothing now; list it under Out.
-- Check every load-bearing fact with a command and write down how. For a rewrite, list the keeps; each becomes an executable check (golden outputs, conformance cases, recorded behavior) before the rewrite starts.
-- Outside evidence: one Wave through `skill://nstack-research`, after the code is read and any scope Nate must pick is pinned.
+- Tag each requirement **Nate** (he asked), **forced** (it cannot work on his setup without it) or **wish**; a wish goes under Out and gets nothing now.
+- Check every load-bearing fact with a command and note how. For a rewrite, turn each keep into an executable check (golden outputs, conformance cases, recorded behavior) before the rewrite starts.
+- Outside evidence comes from one Wave through `skill://nstack-research`, after the code is read and any scope he must pick is pinned.
 
-## 2. Architecture
-The goal is the simplest architecture that does what Nate asked, well. Simple wins: it is quick to build, easy to read, and can be extended when a real need shows up. Nothing here requires a feature, safeguard or mechanism; every part of the design traces to something he asked for or something it cannot work without.
+## Walk his real failures
+For each promise whose break would cost him (work or data he cannot redo, a send or spend done twice, a job stuck without him knowing), walk only what happens on his setup: the process stopping mid-step (an update, a crash, his Mac sleeping or rebooting), the same command or message arriving twice, two copies running where his setup can start two (a timer and a manual run, two workers), a service it depends on being down. One line each on what he sees. "It fails loudly and he reruns it" is a good answer and builds nothing. Where he would lose something, take the fix that keeps the design as simple (write then rename, resume on startup, a unique key) and note it under `Forced by`; a fix that adds a mechanism (a queue, retries, a lock, another process) goes to him as a decision, defaulting to skip. Attackers, scale, clock changes and other users are not walked, and only walks that change the design are written down.
 
-- **Start plain**: one process, one store, modules and direct calls, the platform's own facilities, proven libraries. Add a service, queue, cache, interface, option or framework only when he asked for it or the plain version has actually failed, and say why under `Forced by`. Name the signal that would call for the next step up: a number or something he would see on his setup ("the read log passes a million rows", "two processes write the same file"), never "if needed".
-- **One source of truth**: each piece of state has one owner and lives in one place; each schema or type is defined once, and the types, validators and clients that need it derive from that definition; derive what can be derived instead of storing and syncing a copy.
-- **Data model**: it is the hardest part to change later, so it gets the most thought; keep it as small as today's needs allow.
-- **Changes stay local**: a feature's change lands in one obvious place. Slice 1 sets the patterns agents will copy, so keep it plain and give each job one way to do it. Prefer duplication to a wrong abstraction; extract on the third real use.
-- **State machines when they simplify**: something with a real lifecycle (a job, an order, a session, a device mode) is often simplest as one status with its allowed transitions in one place, instead of flags scattered through the code. A plain enum and one function, no library; skip it for linear or few-branch logic.
-- **LLM parts**: one model call or one simple tool loop; agents, graphs or frameworks only when he asks or the simple version fails.
-- **Errors**: let them surface where they happen; catch only what the code can handle. No retries, timeouts, fallbacks, validation layers or security hardening nobody asked for.
-- **Walk his real failures**: for each promise whose break would cost him (work or data he cannot redo, a send or spend done twice, a job stuck without him knowing), walk only what actually happens on his setup: the process stopping mid-step (an update, a crash, his Mac sleeping or rebooting), the same command or message arriving twice, two copies running where his setup can start two (a timer and a manual run, two workers), and a service it depends on being down. One line each on what he sees. "It fails loudly and he reruns it" is a good answer and builds nothing. Where he would lose something, take a fix that keeps the design as simple (write then rename, startup picks up where it left off, a unique key) and note it under `Forced by`; a fix that adds a mechanism (a queue, retries, a lock, another process) goes to him as a decision with skip as the default. Attackers, scale, clock changes and other users are not walked. Write down only the walks that change the design.
-- **Overbuilt** (cut it): a layer that only forwards; an interface, factory or registry with one implementation; options for values that never change; a bus or queue inside one process; another service or store where a module works; an unmeasured cache; the same state kept twice and synced; a framework, DSL or library for one simple flow; handling, checks or protection for failures and threats nobody named; design for scale, users or devices that do not exist yet.
-- **Too thin** means only: something he asked for that the design cannot do, or one piece of state or one job owned in two places.
-- **Judge it by use**: it does what he asked; the next feature touches one obvious place; it is easy to read, quick to change and cheap to delete.
-- **Options**: think through two or three real designs, starting from the plainest, each from how it gets used; take the simplest that does the job and say why in a line. Never build or benchmark both to compare.
+## A plan he hands you
+Read it against the code once and return one list: wrong facts, open decisions, and wishes written as requirements. Never an edit wave, and the plan does not grow. His picks in it stand; its mechanisms are judged like any design. Distill it into the shape; briefs cite the shape, not the plan.
 
-## 3. A plan Nate hands you
-Read it against the code once and return one list: wrong facts, open decisions, and wishes written as requirements. Never an edit wave, and the plan does not grow. His picks in it stand; its mechanisms are judged like any design above. Distill it into the shape; briefs cite the shape, not the plan.
-
-## 4. Ask once, then slice
-Batch every `[Nate]` decision into one message (`skill://nstack` §2), each option with its time and usage estimate and your default, and pin the permissions the run will need. Then slice: each slice ends in something he can see on his surface with its check; slice 1 is the thinnest end-to-end path, riskiest unknown first; parallel slices own disjoint modules.
-
-## 5. The shape
-One page at the top of the ledger `local/nstack/<slug>.md`, written for the agents that build from it:
+## The shape
+Batch every `[Nate]` decision into one message first (`skill://nstack` › Decide) and pin the permissions the run will need. Then write one page at the top of the ledger `local/nstack/<slug>.md`, for the agents that build from it:
 
 ```
 Outcome: <Nate's words> / <your reading>
@@ -51,10 +35,8 @@ Forced by: <each part beyond the plain shape> - <what he asked for, or why it ca
 Seams: <shared contracts each slice honors; who integrates; how it reaches his surface>
 Slices:
 - [ ] 1 <slice> - done when: <command or observation on his surface>
-Log:
-- <time> <what happened>
 ```
 
-Nate reads a version built from this page for him, never the page itself: what he must decide first, then the outcome and where he will check it, the architecture as a small diagram of its parts and who owns each piece of data, the decisions (his and your defaults) and what is out, and the slices by what he will see after each. The ledger keeps the page for builders.
+Slice 1 is the thinnest end-to-end path, riskiest unknown first, and it sets the patterns agents will copy, so it stays plain. Parallel slices own disjoint modules.
 
-No separate specs, roadmaps or status files unless Nate asks; contracts live in code.
+Nate reads a version built for him, never the page itself: what he must decide first; the outcome and where he will check it; the architecture as a small diagram of its parts and who owns each piece of data; the decisions, his and your defaults, and what is out; the slices by what he will see after each. No separate specs, roadmaps or status files unless he asks; contracts live in code.
