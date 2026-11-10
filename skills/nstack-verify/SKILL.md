@@ -37,4 +37,4 @@ When speed is the goal, run it as a loop on one number:
 3. Stop at his target, or when the last few steps stay inside the spread, and report where the remaining time goes.
 
 ## Evidence
-Each done-check with its proof: the command and output, a screenshot or file path, a URL. Anything unproven is **not verified on <surface>**, with what would verify it. A surface that will be checked again and has no scripted way in gets a small verify script (launch from clean, drive the real path, capture state, clean up), named in the project's AGENTS.md.
+Each done-check with its proof: the command and output, a screenshot or file path, a URL. Anything unproven is **not verified on <surface>**, with what would verify it. A surface that will be checked again and has no scripted way in gets a small verify script (launch from clean, check that the build and target running are the ones just made, drive the real path, capture evidence that outlives the cleanup, clean up), run once end to end before anything relies on it and named in the project's AGENTS.md.

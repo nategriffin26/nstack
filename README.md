@@ -104,7 +104,7 @@ omp's own agent settings decide which roster agents are on and which model each 
 
 ## Credits
 
-- [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan (MIT, 0.15.29): agent control in `skills/nstack` › Agents (orchestrate, swarm, interrogate), the measurement checks and verify script in `nstack-verify` (benchmark-checklist, explain-the-number, hillclimb, create-verification-skill, and the guide's "match the check to the change"), the rules in › Fixes (bug-fix, attack-the-premise, fix-root-causes), `/nstack correct`, and `nstack-formal` (create- and maintain-formal-verification-skill).
+- [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan (MIT, 0.15.36): agent control in `skills/nstack` › Agents (orchestrate, swarm, interrogate), the measurement checks and verify script in `nstack-verify` (benchmark-checklist, explain-the-number, hillclimb, create-verification-skill with its right-build check and run-once rule, and the guide's "match the check to the change"), the rules in › Fixes (bug-fix, attack-the-premise, fix-root-causes), `/nstack correct`, and `nstack-formal` (create- and maintain-formal-verification-skill).
 - [Specula](https://github.com/specula-org/Specula) (Apache-2.0): `nstack-formal`'s history-mined targets and trace validation.
 - [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): the grilling behind `nstack-grill`, and the deletion test and history-read targets in `/nstack simplify`.
 - [helix](https://github.com/DocumentDrivenDX/helix): the no-process-porn skill.

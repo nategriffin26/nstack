@@ -37,6 +37,6 @@ Slices:
 - [ ] 1 <slice> - done when: <command or observation on his surface>
 ```
 
-Slice 1 is the thinnest end-to-end path, riskiest unknown first, and it sets the patterns agents will copy, so it stays plain. Parallel slices own disjoint modules.
+Slice 1 is the thinnest end-to-end path, riskiest unknown first, and it sets the patterns agents will copy, so it stays plain. When the surface has no scripted way in, slice 1 also builds the verify script (`skill://nstack-verify` › Evidence), so every later slice can prove itself there. Parallel slices own disjoint modules.
 
 Nate reads a version built for him, never the page itself: what he must decide first; the outcome and where he will check it; the architecture as a small diagram of its parts and who owns each piece of data; the decisions, his and your defaults, and what is out; the slices by what he will see after each. No separate specs, roadmaps or status files unless he asks; contracts live in code.
