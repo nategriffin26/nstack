@@ -46,7 +46,7 @@ Fill `references/template.md`. The bar:
 - **Boundaries and a light path**: when it applies, when it does not, and the two or three steps for a small version. Failing skills pushed one heavyweight pipeline onto tasks that needed less.
 - **Exemplars, not templates to paste.** A finished artifact goes in `examples/` with what to learn from it and what not to copy; agents copy an example's values verbatim.
 - **Provenance**: the project, session and files it came from.
-- Nothing a capable agent does unprompted, no project's values written as universal, no secrets or private details of other people, and no limits Nate did not set (deadlines, checkpoints, time targets, partial drafts, "X first, the rest later"); keep only his constraints and the real one-way doors (spending, sending as him, deleting, publishing).
+- Nothing a capable agent does unprompted, no project's values written as universal, no secrets or private details of other people, and no limits Nate did not set (deadlines, checkpoints, time targets, partial drafts, "X first, the rest later"); keep only his constraints and the one-way doors (spending, sending or publishing as him, deleting).
 
 ## Check routing before saving
 

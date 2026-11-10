@@ -2,7 +2,7 @@
 
 How I build software with coding agents: a short set of standing rules, skills that load when the work calls for them, and a few slash commands for [omp](https://github.com/can1357/oh-my-pi).
 
-Coding agents fail in predictable ways on real work. They start building before the facts and decisions that decide the result are pinned down. They build more than was asked, in more parts than the problem needs. They build a look at full scale before anyone has seen it. They call it done because the tests pass, not because it works where it will be used. And they keep spending agents, reviews and tests long after more of it stops changing the outcome. nstack aims every step at the end state: the simplest correct design, finished in every state and crafted, proven where it is used.
+Coding agents fail in predictable ways on real work. They start building before the facts and decisions that decide the result are pinned down. They build more than was asked, in more parts than the problem needs. They build a look at full scale before anyone has seen it. They call it done because the tests pass, not because it works where it will be used. And they keep spending agents, reviews and tests long after more of it stops changing the outcome. nstack aims every step at the end state: the simplest correct design, finished in every state and crafted, proven where it is used. It works when I can hand over a large feature or a whole product once and get back what a company of principal engineers would have designed over years.
 
 It is written for one person, me (Nate), and tuned against an audit of about a thousand of my own agent sessions. The rules name me, my Mac and my phone on purpose: an agent does better with a specific person and a specific setup than with "the user". It is published as a reference. Fork it and make it yours.
 
@@ -31,7 +31,7 @@ Each question comes with a recommended default, and work that does not depend on
 | Piece | Loads | What it does |
 |---|---|---|
 | `omp-rules.md` | every session and subagent, always | The floor: twelve standing rules in under 4,000 characters |
-| `skills/nstack` | before features, multi-step changes and agent briefs; autoloaded into author agents | The method: size, frame, decide, design, taste, fixes, build, agents, review, prove, report |
+| `skills/nstack` | before features, multi-step changes, unsettled fixes and agent briefs, and when a brief hands an agent one; autoloaded into author agents | The method: a firm start (size, frame, decide, taste), principles applied by judgment (design, fixes, build, agents, review) and a firm done (prove, report) |
 | `skills/nstack-design` | big asks: rewrites, new systems, unsettled architecture or look | Ground the facts, walk the failures that would cost you, write the one-page shape with slices |
 | `skills/nstack-review` | reviews and critic verdicts | By a model of another family: what would hurt on the real setup, judged by its likelihood there, and what to cut, tighten or redesign, as advice |
 | `skills/nstack-verify` | when proof needs more than the tests, a number decides something, or speed is the goal | Proof on the real surface, a number checked before it counts, a speed loop with each change kept or reverted |

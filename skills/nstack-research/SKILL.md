@@ -37,7 +37,7 @@ web prior "<question>"   web save <run-dir>   web check <run-dir|file>   web dig
 
 Search is Exa with highlights, about a second; when Exa fails it tries the next provider in its order by itself (TinyFish, then Brave, Serper and Parallel where their keys are set) and names the one that answered. In a Dig, Wave or Trail pass `--lane <run-slug>/<Lane>` on every call so the log ties each read to the run; a Look up needs no lane. X posts: `xurl` (AGENTS.md). Pages nothing else reaches: `browser`.
 
-Code questions, cheapest first: the library's `llms.txt` or docs page (`web read`), its source (`web github … --grep`), `web search --type github`, DeepWiki for an unfamiliar repo. Skip the lookup for stable APIs you know well: retrieval helps rare APIs and can hurt common ones. Read the docs for the version the project pins and code against what is installed. A newer release is usually worth taking (fixes, features, new capability): name what it brings and offer the upgrade in the next batch of questions with upgrading as your default; never upgrade silently mid-task.
+Code questions, cheapest first: the library's `llms.txt` or docs page (`web read`), its source (`web github … --grep`), `web search --type github`, DeepWiki for an unfamiliar repo. Skip the lookup for stable APIs you know well: retrieval helps rare APIs and can hurt common ones. Read the docs for the version the project pins and code against what is installed. A newer release is usually worth taking (fixes, features, new capability): name what it brings and offer the upgrade under Needs Nate in the report, with upgrading as your default; never upgrade silently mid-task.
 
 ## Look up
 
