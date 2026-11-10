@@ -1,24 +1,47 @@
 #!/usr/bin/env python3
-"""Compress omp + Context (Dross/worker) session logs into per-session digests.
+"""Print what omp's session logs show about nstack's effect, per period.
 
-Read-only over ~/.omp/agent/sessions and Context's sessions and workers: the pre-cutover home frozen in
-~/.context-cutover/frozen (Dross's omp sessions and old-layout workers) and the live home's workers/sessions.
-Writes:
-  local/digests/sessions.jsonl   one stats record per root session (subagents rolled up)
-  local/digests/md/<key>.md      one readable digest per root session (user turns verbatim-ish,
-                                 agent yields truncated, per-turn cost/tools/delegation)
+Read-only over ~/.omp/agent/sessions (root sessions and their subagent files). Prints one table with a
+column per period and writes it with the other files to a new run directory:
+
+  <out>/sessions.jsonl   one stats record per root session (subagents rolled up)
+  <out>/summary.md       the table
+  <out>/corrections.md   the follow-up messages of sessions that edited a file, verbatim, newest first
+  <out>/md/<key>.md      one readable digest per session (with --digests only)
+
+The default <out> is local/audit/runs/<today>/, or <today>-2, -3 and so on when that already holds a run.
+The last line printed is the run directory.
+
+Usage:
+  python3 audit/scripts/session_audit.py [--split YYYY-MM-DD ...] [--since YYYY-MM-DD] [--out DIR] [--digests]
+
+  --split DATE    start a new period at DATE (a session belongs to the period of its start date); repeatable
+  --since DATE    ignore sessions that started earlier
+  --out DIR       run directory (default as above)
+  --digests       also write the per-session digests into <out>/md/ (about 14 MB)
+
+Two limits of the logs. The log does not record who wrote a session's first prompt, so a session Nate typed
+and one Dross briefed look the same; the only mark is the working directory of Dross's owner runs
+(~/.dross/core/owners/), which the follow-up rows leave out. Author subagents load the nstack skill without a
+`read` call, so reading the skill is measured for root sessions only.
+Sessions about nstack itself are included.
+Credentials pasted into a user message are masked in the output and remain in omp's own session logs.
 """
-import glob, json, os, re, sys
+import argparse, glob, json, os, re, sys
+from bisect import bisect_right
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
-from datetime import datetime
+from datetime import date, datetime, timedelta
+from itertools import repeat
 
 HOME = os.path.expanduser("~")
-FROZEN = f"{HOME}/.context-cutover/frozen"
-CONTEXT_HOME = os.environ.get("CONTEXT_HOME") or f"{HOME}/.context-next"
-OUT = os.path.join(os.path.dirname(__file__), "..", "..", "local", "digests")
+RUNS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "local", "audit", "runs")
+OWNERS = f"{HOME}/.dross/core/owners/"
 REMINDER = re.compile(r"<(system-reminder|system-notice|system-directive|system-interrupt)[^>]*>.*?</\1>", re.S)
 WS = re.compile(r"\n{3,}")
+KEY_PREFIXED = re.compile(r"(?:sk-|ghp_|gho_|github_pat_|xoxb-|xoxp-|AKIA|AIza)[A-Za-z0-9_\-]{8,}")
+KEY_NAMED = re.compile(r"(\b\w*(?:key|token|secret|password)\b\s*[=:]\s*)\S+", re.I)
+LONG_RUN = re.compile(r"[A-Za-z0-9_\-+/=]{32,}")
 
 
 def iso(s):
@@ -26,6 +49,15 @@ def iso(s):
         return datetime.fromisoformat(s.replace("Z", "+00:00"))
     except Exception:
         return None
+
+
+def mask(s):
+    """Replace credentials in user text with [redacted]: tokens with a known key prefix, the value after a
+    name ending in key, token, secret or password and `=` or `:`, and any run of 32 or more key characters
+    holding a letter and a digit (so a git SHA is masked too)."""
+    s = KEY_PREFIXED.sub("[redacted]", s)
+    s = KEY_NAMED.sub(r"\1[redacted]", s)
+    return LONG_RUN.sub(lambda m: "[redacted]" if re.search(r"[A-Za-z]", m[0]) and re.search(r"\d", m[0]) else m[0], s)
 
 
 def clip(s, n):
@@ -53,7 +85,8 @@ def parse(path):
     s = {"path": path, "id": None, "cwd": None, "parent": None, "title": None, "start": None, "end": None,
          "models": Counter(), "cost": 0.0, "aux_cost": 0.0, "tin": 0, "tout": 0, "tcr": 0, "tcw": 0,
          "tools": Counter(), "skills": Counter(), "writes": [], "tasks": [], "asks": 0, "todo_ops": 0,
-         "compactions": 0, "events": [], "turn": 0, "first_edit": None, "first_task": None, "mkeys": []}
+         "compactions": 0, "events": [], "turn": 0, "first_edit": None, "first_task": None, "mkeys": [],
+         "calls": 0, "first_nstack_read": None}
     try:
         fh = open(path, errors="replace")
     except OSError:
@@ -107,12 +140,15 @@ def parse(path):
                             name = b.get("name") or "?"
                             a = b.get("arguments") or {}
                             s["tools"][name] += 1
+                            s["calls"] += 1
                             calls.append(name)
                             if name == "read":
                                 p = str(a.get("path", ""))
                                 mm = re.match(r"skill://([^/:\s]+)", p)
                                 if mm:
                                     s["skills"][mm.group(1)] += 1
+                                    if mm.group(1) == "nstack" and s["first_nstack_read"] is None:
+                                        s["first_nstack_read"] = {"ts": ts, "turn": s["turn"], "call": s["calls"]}
                             elif name in ("write", "edit"):
                                 p = a.get("path") or ""
                                 if not p and name == "edit":
@@ -120,7 +156,8 @@ def parse(path):
                                     p = ",".join(mm)
                                 s["writes"].append(p)
                                 if s["first_edit"] is None:
-                                    s["first_edit"] = {"ts": ts, "turn": s["turn"], "cost_before": round(s["cost"], 2)}
+                                    s["first_edit"] = {"ts": ts, "turn": s["turn"], "cost_before": round(s["cost"], 2),
+                                                       "call": s["calls"]}
                             elif name == "task":
                                 for tk in a.get("tasks") or []:
                                     spec = {"agent": tk.get("agent") or "task", "name": tk.get("name"),
@@ -148,16 +185,19 @@ def roots():
     for f in glob.glob(f"{HOME}/.omp/agent/sessions/*/*.jsonl"):
         proj = f.split("/sessions/")[1].split("/")[0]
         yield ("omp", proj, f)
-    for f in glob.glob(f"{FROZEN}/sessions/*.jsonl"):
-        yield ("dross", "dross", f)
-    for pattern in (f"{FROZEN}/workers/*/session", f"{CONTEXT_HOME}/workers/sessions/*"):
-        for w in glob.glob(pattern):
-            wid = w.split("/")[-2] if w.endswith("/session") else w.split("/")[-1]
-            for f in sorted(glob.glob(w + "/*.jsonl")):
-                yield ("worker", wid[:8], f)
 
 
-def summarize(item):
+def nstack_read(r):
+    """Whether the root session read skill://nstack before its first edit, after it, never, or made no edit."""
+    edit, read = r["first_edit"], r["first_nstack_read"]
+    if edit is None:
+        return "no edit"
+    if read is None:
+        return "never"
+    return "before first edit" if read["call"] < edit["call"] else "after first edit"
+
+
+def summarize(item, digests):
     src, proj, f = item
     r = parse(f)
     subs = [parse(x) for x in subfiles(f)]
@@ -186,6 +226,8 @@ def summarize(item):
         "md_writes": sum(1 for w in r["writes"] + [w for x in subs for w in x["writes"]] if str(w).endswith(".md")),
         "task_specs": r["tasks"],
         "first_edit": r["first_edit"], "first_task": r["first_task"],
+        "first_nstack_read": r["first_nstack_read"], "nstack_read": nstack_read(r),
+        "owner_run": (r["cwd"] or "").startswith(OWNERS),
         "first_sub_edit_ts": min((x["first_edit"]["ts"] for x in subs if x["first_edit"]), default=None),
         "subagents": [{"file": os.path.relpath(x["path"], f[:-6]), "title": x["title"],
                        "model": (x["models"].most_common(1)[0][0] if x["models"] else None),
@@ -195,8 +237,8 @@ def summarize(item):
                       for x in subs],
         "_mk_root": r["mkeys"], "_mk_sub": [k for x in subs for k in x["mkeys"]],
     }
-    md = render(rec, r)
-    return rec, md
+    followups = [clip(mask(e[2]), 600) for e in users[1:]]
+    return rec, render(rec, r) if digests else None, followups
 
 
 def render(rec, r):
@@ -240,7 +282,7 @@ def render(rec, r):
             turn += 1
             limit = 7000 if turn == 1 else 2500
             L.append(f"### USER (turn {turn}) @ {e[1]}")
-            L.append(clip(e[2], limit))
+            L.append(clip(mask(e[2]), limit))
             L.append("")
         else:
             if pending is None:
@@ -261,16 +303,103 @@ def render(rec, r):
     return "\n".join(L)
 
 
+def run_dir(out, marker="sessions.jsonl"):
+    """`out` if given; else today's directory under RUNS, with -2, -3, ... when it already holds `marker`."""
+    if out:
+        return os.path.abspath(out)
+    base = os.path.normpath(os.path.join(RUNS, date.today().isoformat()))
+    path, n = base, 1
+    while os.path.exists(os.path.join(path, marker)):
+        n += 1
+        path = f"{base}-{n}"
+    return path
+
+
+def period_labels(splits):
+    if not splits:
+        return ["all"]
+    day = timedelta(days=1)
+    ends = [(date.fromisoformat(x) - day).isoformat() for x in splits]
+    return ([f"before {splits[0]}"] + [f"{a} to {b}" for a, b in zip(splits, ends[1:])] + [f"{splits[-1]} on"])
+
+
+def summary_table(recs, splits):
+    """Markdown table, one column per period. Rows are defined in the plan's step 3 and counted over root sessions."""
+    periods = [[] for _ in range(len(splits) + 1)]
+    for rec in recs:
+        periods[bisect_right(splits, (rec["start"] or "")[:10])].append(rec)
+
+    def column(rs):
+        edited = [r for r in rs if r["writes"] > 0]
+        root_edit = [r for r in edited if r["first_edit"] is not None]
+        human = [r for r in root_edit if not r["owner_run"]]
+        follow = [max(r["user_turns"] - 1, 0) for r in human]
+        return {
+            "Root sessions": len(rs),
+            "Edited a file": len(edited),
+            "Read nstack before the first edit": sum(r["nstack_read"] == "before first edit" for r in root_edit),
+            "Read nstack after the first edit": sum(r["nstack_read"] == "after first edit" for r in root_edit),
+            "Never read nstack": sum(r["nstack_read"] == "never" for r in root_edit),
+            "Used the `ask` tool": sum(r["asks"] > 0 for r in edited),
+            "20 or more subagents": sum(r["n_subagents"] >= 20 for r in rs),
+            "Subagents spawned": sum(r["n_subagents"] for r in rs),
+            "Compacted at least once": sum(r["compactions"] > 0 for r in edited),
+            "Follow-up messages": sum(follow),
+            "Sessions with 3 or more follow-ups": sum(n >= 3 for n in follow),
+            "Cost at list price": "${:,.0f}".format(sum(r["total_cost_dedup"] for r in rs)),
+        }
+
+    cols = [column(p) for p in periods]
+    lines = ["| | " + " | ".join(period_labels(splits)) + " |", "|---|" + "---|" * len(cols)]
+    lines += [f"| {row} | " + " | ".join(str(c[row]) for c in cols) + " |" for row in cols[0]]
+    return "\n".join(lines)
+
+
+LIMITS = (
+    "The log does not record who wrote a session's first prompt, so a session Nate typed and one Dross briefed look "
+    "the same; the follow-up rows leave out only Dross's owner runs (working directory under ~/.dross/core/owners/) "
+    "and undercount corrections to work Dross briefed. "
+    "Author subagents load the nstack skill without a `read` call, so reading the skill is measured for root "
+    "sessions that edited a file themselves. "
+    "Credentials pasted into a message are masked in the output and remain in omp's own session logs."
+)
+
+
+def corrections(recs, followups):
+    """Follow-up messages of root sessions that edited a file, newest session first, owner runs left out."""
+    L = ["# Follow-up messages", ""]
+    for rec in sorted(recs, key=lambda r: r["start"] or "", reverse=True):
+        msgs = followups[rec["key"]]
+        if rec["writes"] == 0 or rec["owner_run"] or not msgs:
+            continue
+        L += [f"## {(rec['start'] or '')[:10]} {rec['title'] or '(untitled)'}", f"cwd: {rec['cwd']}  key: {rec['key']}", ""]
+        for m in msgs:
+            L += ["> " + line for line in m.splitlines()] + [""]
+    return "\n".join(L)
+
+
 def main():
-    os.makedirs(os.path.join(OUT, "md"), exist_ok=True)
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--split", action="append", default=[], metavar="YYYY-MM-DD")
+    ap.add_argument("--since", default="", metavar="YYYY-MM-DD")
+    ap.add_argument("--out")
+    ap.add_argument("--digests", action="store_true")
+    args = ap.parse_args()
+    splits = sorted(args.split)
+    for d in splits + ([args.since] if args.since else []):
+        date.fromisoformat(d)
+    out = run_dir(args.out)
     items = list(roots())
     print(f"{len(items)} root sessions", file=sys.stderr)
-    recs = []
+    os.makedirs(os.path.join(out, "md") if args.digests else out, exist_ok=True)
+    recs, followups = [], {}
     with ProcessPoolExecutor(max_workers=10) as ex:
-        for rec, md in ex.map(summarize, items, chunksize=4):
+        for rec, md, fu in ex.map(summarize, items, repeat(args.digests), chunksize=4):
             recs.append(rec)
-            with open(os.path.join(OUT, "md", rec["key"] + ".md"), "w") as fh:
-                fh.write(md)
+            followups[rec["key"]] = fu
+            if md is not None and (rec["start"] or "")[:10] >= args.since:
+                with open(os.path.join(out, "md", rec["key"] + ".md"), "w") as fh:
+                    fh.write(md)
     # Forked sessions copy their parent's history, so the same model call appears in several files.
     # Charge each call once, to the earliest session that contains it.
     seen = set()
@@ -286,9 +415,17 @@ def main():
         rec["root_cost_dedup"] = round(parts["root"], 4)
         rec["sub_cost_dedup"] = round(parts["sub"], 4)
         rec["total_cost_dedup"] = round(parts["root"] + parts["sub"], 4)
-    with open(os.path.join(OUT, "sessions.jsonl"), "w") as out:
+    recs = [r for r in recs if (r["start"] or "")[:10] >= args.since]
+    with open(os.path.join(out, "sessions.jsonl"), "w") as fh:
         for rec in recs:
-            out.write(json.dumps(rec) + "\n")
+            fh.write(json.dumps(rec) + "\n")
+    table = summary_table(recs, splits) + "\n\n" + LIMITS + "\n"
+    with open(os.path.join(out, "summary.md"), "w") as fh:
+        fh.write(table)
+    with open(os.path.join(out, "corrections.md"), "w") as fh:
+        fh.write(corrections(recs, followups) + "\n")
+    print(table)
+    print(out)
 
 
 if __name__ == "__main__":

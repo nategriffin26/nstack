@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
-"""Deterministic spend/process metrics over every omp and Context session file.
+"""Deterministic spend/process metrics over every omp session file.
 
 Per assistant call: cost and context size (input + cache read + cache write).
 Per subagent file: the agent type that spawned it (matched by task name in the parent),
 its role (research / verify / review / build-or-other), cost, month.
 Per session file: build briefs it spawned more than once (exact text after whitespace folding).
-Writes local/digests/metrics.json and prints the tables used in the audit report (local/audit/REPORT.md, private).
-`--since YYYY-MM-DD` keeps only root sessions started on or after that date and `--until YYYY-MM-DD` only
-those started before it (forks are still charged to their earliest session first); the output file name
-carries both.
+Writes metrics.json into a run directory and prints the tables used in the audit report (local/audit/REPORT.md, private).
+Sessions about nstack itself are included, as in session_audit.py.
+
+Usage:
+  python3 audit/scripts/metrics.py [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--out DIR]
+
+  --since DATE  keep only root sessions started on or after DATE
+  --until DATE  keep only root sessions started before DATE (forks are still charged to their earliest session first)
+  --out DIR     run directory (default local/audit/runs/<today>/, or <today>-2, -3 and so on when that holds a
+                metrics.json already); the file name carries --since and --until
 """
-import glob, json, os, re, sys
+import argparse, glob, json, os, re
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor
 
+from session_audit import run_dir
+
 HOME = os.path.expanduser("~")
-CONTEXT_HOME = os.environ.get("CONTEXT_HOME") or f"{HOME}/.context-next"
-# Context worker transcripts: the pre-cutover layout <home>/workers/<id>/session/*.jsonl (the old ~/.context, frozen in
-# ~/.context-cutover/frozen on 2026-10-12) and the current one, <home>/workers/sessions/<sha256 of the session>/main.jsonl
-# with its subagents under main/.
-WORKER_SESSION_DIRS = (f"{HOME}/.context-cutover/frozen/workers/*/session", f"{CONTEXT_HOME}/workers/sessions/*")
-OUT = os.path.join(os.path.dirname(__file__), "..", "..", "local", "digests", "metrics.json")
 REVIEW = re.compile(r"review|audit|critic|judge|interrogat|challenge|redteam|red-team|adversar|skeptic|check(er)?$", re.I)
 LANE = re.compile(r"^(researcher|verifier)")
 BUCKETS = [50_000, 100_000, 200_000, 300_000, 400_000, 10**9]
@@ -102,21 +104,19 @@ def session(item):
 
 def roots():
     for f in glob.glob(f"{HOME}/.omp/agent/sessions/*/*.jsonl"):
-        p = f.split("/sessions/")[1].split("/")[0]
-        if p != "-Projects-nstack":
-            yield ("omp", p, f)
-    for pattern in WORKER_SESSION_DIRS:
-        for w in glob.glob(pattern):
-            wid = (w.split("/")[-2] if w.endswith("/session") else w.split("/")[-1])[:8]
-            for f in glob.glob(w + "/*.jsonl"):
-                yield ("worker", wid, f)
+        yield ("omp", f.split("/sessions/")[1].split("/")[0], f)
 
 
 def main():
-    since = sys.argv[sys.argv.index("--since") + 1] if "--since" in sys.argv else ""
-    until = sys.argv[sys.argv.index("--until") + 1] if "--until" in sys.argv else ""
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--since", default="", metavar="YYYY-MM-DD")
+    ap.add_argument("--until", default="", metavar="YYYY-MM-DD")
+    ap.add_argument("--out")
+    args = ap.parse_args()
+    since, until = args.since, args.until
     suffix = (f"-since-{since}" if since else "") + (f"-until-{until}" if until else "")
-    out_path = OUT.replace(".json", f"{suffix}.json")
+    name = f"metrics{suffix}.json"
+    out_path = os.path.join(run_dir(args.out, name), name)
     with ProcessPoolExecutor(max_workers=10) as ex:
         rows = [r for rs in ex.map(session, list(roots()), chunksize=4) for r in rs]
     # Forked sessions copy the parent's history: charge each model call, and count each spawn, once, to the

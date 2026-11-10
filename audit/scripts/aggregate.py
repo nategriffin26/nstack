@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Aggregate the per-session analyses (local/analysis/*.jsonl) with the extracted stats
-(local/digests/sessions.jsonl). Prints the tables cited in the audit report (local/audit/REPORT.md, private) and writes
-local/analysis/AGGREGATE.json. The current audit session (-Projects-nstack) is excluded.
+"""Aggregate the per-session analyses that agents wrote during the October 2026 audit (local/analysis/[SW]*.jsonl,
+listed in local/batches/manifest.json) with a sessions.jsonl. Prints the tables cited in the audit report
+(local/audit/REPORT.md, private) and writes AGGREGATE.json, QUOTES.md and INTERVENTIONS.md into --out.
+The audit session itself (-Projects-nstack) is excluded. No script produces the analyses; this one only replays that audit.
+
+Usage:
+  python3 audit/scripts/aggregate.py --sessions PATH --out DIR
+
+  --sessions PATH  the sessions.jsonl to join (session_audit.py or an earlier extraction wrote it)
+  --out DIR        where the three output files go (created if missing)
 """
-import glob, json, os, re, statistics as st
+import argparse, glob, json, os, re, statistics as st
 from collections import Counter, defaultdict
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "local")
@@ -51,8 +58,13 @@ def table(title, rows, cols):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--sessions", required=True)
+    ap.add_argument("--out", required=True)
+    args = ap.parse_args()
+    os.makedirs(args.out, exist_ok=True)
     stats = {}
-    for line in open(os.path.join(ROOT, "digests", "sessions.jsonl")):
+    for line in open(args.sessions):
         r = json.loads(line)
         stats[r["key"]] = r
     sess = [d for d in load("[SW]*.jsonl") if "-Projects-nstack" not in d.get("key", "")]
@@ -173,10 +185,10 @@ def main():
     print("grounded in code:", rate(lambda d: pre(d).get("grounded_in_code")))
     print("design artifact:", Counter(pre(d).get("design_artifact") for d in bb))
     print("missing_from_ask top:", Counter(m.lower().strip()[:60] for d in bb for m in (d.get("missing_from_ask") or [])).most_common(25))
-    json.dump(agg, open(os.path.join(A, "AGGREGATE.json"), "w"), indent=1, default=str)
+    json.dump(agg, open(os.path.join(args.out, "AGGREGATE.json"), "w"), indent=1, default=str)
 
     # quotes and interventions dump for reading
-    with open(os.path.join(A, "QUOTES.md"), "w") as fh:
+    with open(os.path.join(args.out, "QUOTES.md"), "w") as fh:
         fh.write("# Nate's process quotes (deduped)\n\n")
         seenq = set()
         for d in sorted(sess, key=lambda d: stats.get(d.get("key"), {}).get("start") or ""):
@@ -186,7 +198,7 @@ def main():
                     continue
                 seenq.add(k)
                 fh.write(f"- {q.strip()} — `{d.get('key', '')[:70]}`\n")
-    with open(os.path.join(A, "INTERVENTIONS.md"), "w") as fh:
+    with open(os.path.join(args.out, "INTERVENTIONS.md"), "w") as fh:
         fh.write("# Best interventions, by session cost\n\n")
         for d in sorted(sess, key=lambda d: -d["_cost"]):
             if d.get("best_intervention"):

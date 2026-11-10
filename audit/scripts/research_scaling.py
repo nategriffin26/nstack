@@ -4,16 +4,24 @@
 Joins every research run on disk (lane dossiers, verifier verdicts, SYNTHESIS.md/.json) with
 the omp session logs (each lane's model and cost, verifier cost, the orchestrator's cost from
 the first lane spawn to the synthesis write, Nate's first reply after it) and the `web` ledger
-(pages each lane fetched). Writes local/analysis/RESEARCH-SCALING.json and prints the tables
+(pages each lane fetched). Writes RESEARCH-SCALING.json into a run directory and prints the tables
 behind the audit report (local/audit/REPORT.md, private).
+
+Usage:
+  python3 audit/scripts/research_scaling.py [--out DIR]
+
+  --out DIR  run directory (default local/audit/runs/<today>/, or <today>-2, -3 and so on when that holds a
+             RESEARCH-SCALING.json already)
 """
-import glob, json, os, random, re, sqlite3, subprocess
+import argparse, glob, json, os, random, re, sqlite3, subprocess
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 
+from session_audit import run_dir
+
 HOME = os.path.expanduser("~")
-OUT = os.path.join(os.path.dirname(__file__), "..", "..", "local", "analysis", "RESEARCH-SCALING.json")
+NAME = "RESEARCH-SCALING.json"
 RUN_GLOBS = ["Projects/*/local/research/*/", "Projects/*/*/local/research/*/",
              ".omp/agent/sessions/*/*/local/research/*/", ".omp/local/research/*/", "local/research/*/"]
 URL = re.compile(r"https?://[^\s\"'<>)\]\\`|]+")
@@ -185,16 +193,16 @@ def rarefaction(lane_sets, target, k, trials=300):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--out")
+    out_path = os.path.join(run_dir(ap.parse_args().out, NAME), NAME)
     runs = load_runs()
     runs_by_slug = defaultdict(list)
     for d, r in runs.items():
         runs_by_slug[r["slug"]].append(d)
 
-    context_workers = [p for p in (f"{HOME}/.context-cutover/frozen/workers",
-                                   f"{os.environ.get('CONTEXT_HOME') or HOME + '/.context-next'}/workers/sessions")
-                       if os.path.isdir(p)]
     grep = subprocess.run(["/usr/bin/grep", "-rl", "--null", "--include=*.jsonl", "local/research/",
-                           f"{HOME}/.omp/agent/sessions", *context_workers], capture_output=True, text=True)
+                           f"{HOME}/.omp/agent/sessions"], capture_output=True, text=True)
     files = sorted(f for f in grep.stdout.split("\0") if f)
     with ProcessPoolExecutor(max_workers=10) as ex:
         orchs = [o for o in ex.map(scan, files, chunksize=4) if o]
@@ -301,10 +309,10 @@ def main():
 
     out_runs.sort(key=lambda x: -x["lanes"])
     summary = summarize(out_runs)
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump({"summary": summary, "runs": out_runs}, open(OUT, "w"), indent=1)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    json.dump({"summary": summary, "runs": out_runs}, open(out_path, "w"), indent=1)
     print(json.dumps(summary, indent=1))
-    print(f"{len(out_runs)} runs, {sum(r['lanes'] for r in out_runs)} lanes -> {OUT}")
+    print(f"{len(out_runs)} runs, {sum(r['lanes'] for r in out_runs)} lanes -> {out_path}")
 
 
 def summarize(runs):
