@@ -7,6 +7,7 @@ replaying responses recorded on 2026-10-23, keys removed.
 
 from __future__ import annotations
 
+import hashlib
 import http.server
 import json
 import os
@@ -17,6 +18,7 @@ import tempfile
 import threading
 import time
 import unittest
+from collections.abc import Callable
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web.py")
 
@@ -46,12 +48,14 @@ EXA_CONTENTS = {
 
 
 class Fake(http.server.ThreadingHTTPServer):
-    """Answers each path prefix with a fixed (status, body) and records requests."""
+    """Answers each path prefix and records requests. A route is a fixed (status, body), or a
+    function of the request handler returning (status, body) or (status, body, headers)."""
 
-    def __init__(self, routes: dict[str, tuple[int, dict]]):
+    def __init__(self, routes: dict[str, tuple | Callable]):
         super().__init__(("127.0.0.1", 0), Handler)
         self.routes = routes
         self.requests: list[str] = []
+        self.keys: list[str | None] = []   # the X-API-Key of each request, parallel to `requests`
 
     @property
     def url(self) -> str:
@@ -64,12 +68,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if length:
             self.rfile.read(length)
         self.server.requests.append(self.path)
-        status, body = next((v for k, v in self.server.routes.items() if self.path.startswith(k)),
-                            (404, {"error": "no route"}))
+        self.server.keys.append(self.headers.get("X-API-Key"))
+        route = next((v for k, v in self.server.routes.items() if self.path.startswith(k)),
+                     (404, {"error": "no route"}))
+        status, body, *extra = route(self) if callable(route) else route
         data = json.dumps(body).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
+        for name, value in (extra[0] if extra else {}).items():
+            self.send_header(name, value)
         self.end_headers()
         self.wfile.write(data)
 
@@ -111,11 +119,14 @@ class WebCase(unittest.TestCase):
                               capture_output=True, text=True, timeout=120)
 
     def mcp(self, *messages: dict, env_extra: dict | None = None) -> list[dict]:
-        """Run `web.py mcp`, send each JSON-RPC message as a line, close stdin, and return the
-        parsed response lines in order."""
-        stdin = "".join(json.dumps(m) + "\n" for m in messages)
+        """`mcp_lines` for JSON-RPC messages, one per line."""
+        return self.mcp_lines(*(json.dumps(m) + "\n" for m in messages), env_extra=env_extra)
+
+    def mcp_lines(self, *lines: str, env_extra: dict | None = None) -> list[dict]:
+        """Run `web.py mcp`, send the raw lines, close stdin, and return the parsed response
+        lines in order."""
         p = subprocess.run([sys.executable, WEB, "mcp"], env=self._env(env_extra), cwd=self.home,
-                           input=stdin, capture_output=True, text=True, timeout=120)
+                           input="".join(lines), capture_output=True, text=True, timeout=120)
         self.assertEqual(p.returncode, 0, p.stderr)
         return [json.loads(line) for line in p.stdout.splitlines() if line.strip()]
 
@@ -471,6 +482,125 @@ class McpRead(WebCase):
         result = self.mcp_read(["https://example.com/page", self.secret])
         self.assertTrue(result["isError"], result)
         self.assertEqual(self.fake.requests, [])
+
+
+class McpServer(WebCase):
+    @staticmethod
+    def request(mid: int, method: str, params: dict | None = None) -> dict:
+        return {"jsonrpc": "2.0", "id": mid, "method": method, **({"params": params} if params else {})}
+
+    def test_initialize_answers_with_a_version_the_server_speaks(self):
+        """Bug: the server answers a client's protocol version with one it does not speak."""
+        old, unknown = self.mcp(
+            self.request(1, "initialize", {"protocolVersion": "2024-11-05"}),
+            self.request(2, "initialize", {"protocolVersion": "1999-01-01"}))
+        self.assertEqual(old["result"]["protocolVersion"], "2024-11-05")
+        self.assertEqual(unknown["result"]["protocolVersion"], "2025-06-18")
+
+    def test_tools_list_names_exactly_the_runnable_tools(self):
+        """Bug: a bot is offered a tool the server cannot run."""
+        (reply,) = self.mcp(self.request(1, "tools/list"))
+        self.assertEqual(sorted(t["name"] for t in reply["result"]["tools"]), ["read", "search"])
+
+    def test_malformed_line_does_not_end_the_session(self):
+        """Bug: one malformed line ends the session."""
+        bad, ping = self.mcp_lines("this is not json\n", json.dumps(self.request(2, "ping")) + "\n")
+        self.assertEqual(bad["error"]["code"], -32700)
+        self.assertEqual(ping["id"], 2)
+        self.assertIn("result", ping)
+
+    def test_notification_gets_no_reply(self):
+        """Bug: a notification gets a reply, which breaks the client's request matching."""
+        replies = self.mcp({"jsonrpc": "2.0", "method": "notifications/initialized"},
+                           self.request(1, "ping"))
+        self.assertEqual([r["id"] for r in replies], [1])
+
+    def test_unknown_tool_and_unknown_method_are_errors(self):
+        """Bug: an unknown tool or method is reported as success."""
+        tool, method = self.mcp(self.request(1, "tools/call", {"name": "delete", "arguments": {}}),
+                                self.request(2, "resources/list"))
+        self.assertEqual(tool["error"]["code"], -32602)
+        self.assertEqual(method["error"]["code"], -32601)
+
+    def test_bad_arguments_are_an_error_result_not_a_crash(self):
+        """Bug: bad arguments crash the server instead of returning an error result."""
+        bad, ping = self.mcp(self.request(1, "tools/call", {"name": "search", "arguments": {}}),
+                             self.request(2, "ping"))
+        self.assertTrue(bad["result"]["isError"])
+        self.assertTrue(bad["result"]["content"][0]["text"].startswith("bad arguments:"), bad)
+        self.assertEqual(ping["id"], 2)
+        self.assertIn("result", ping)
+
+    def test_search_reaches_the_provider(self):
+        """Bug: a search through MCP returns nothing, or does not reach the provider."""
+        self.serve({"/exa/search": (401, EXA_401), "/tf-search": (200, TINYFISH_SEARCH)})
+        (reply,) = self.mcp(self.request(1, "tools/call", {
+            "name": "search", "arguments": {"query": "exa search api pricing"}}))
+        self.assertFalse(reply["result"]["isError"], reply)
+        self.assertIn("https://exa.ai/pricing", reply["result"]["content"][0]["text"])
+
+
+class RateGate(WebCase):
+    URL = "https://example.com/rate-gate-page"
+    PAGE = {"results": [{"url": URL, "title": "T", "text": "The page text behind the rate gate. " * 10}],
+            "errors": []}   # over the 200-char thin-read threshold, so Exa is not asked too
+
+    def test_a_429_key_is_parked_while_another_is_free(self):
+        """Bug: a key that returned 429 is used again while another key is free."""
+        limited: list[str] = []   # the first key to arrive is the one that gets limited
+        lock = threading.Lock()
+
+        def fetch(handler) -> tuple:
+            key = handler.headers.get("X-API-Key")
+            with lock:
+                if not limited:
+                    limited.append(key)
+            if key == limited[0]:
+                return 429, {"error": "rate limited"}, {"Retry-After": "30"}
+            return 200, self.PAGE
+
+        fake = self.serve({"/tf-fetch": fetch})
+        p = self.web("read", self.URL, "--no-archive", "--lane", "t")
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        self.assertIn("The page text behind the rate gate.", p.stdout)
+        self.assertEqual(sorted(fake.keys), ["test-a", "test-b"])
+        self.assertEqual(fake.keys.count(limited[0]), 1)
+        self.assertEqual(self.db().execute("SELECT surface, count(*) FROM blocks GROUP BY surface").fetchall(),
+                         [("fetch", 1)])
+
+    def test_every_key_limited_ends_retryable_without_waiting(self):
+        """Bug: with every key rate limited the command hangs, or exits 0 with nothing read."""
+        self.serve({"/tf-fetch": (429, {"error": "rate limited"}, {"Retry-After": "30"})})
+        started = time.monotonic()
+        p = self.web("read", self.URL, "--no-archive", "--lane", "t", "--max-wait", "0")
+        elapsed = time.monotonic() - started
+        self.assertEqual(p.returncode, 75, p.stdout + p.stderr)
+        self.assertIn("RETRYABLE", p.stdout + p.stderr)
+        self.assertIn(self.URL, p.stdout + p.stderr)
+        self.assertLess(elapsed, 5)
+        self.assertEqual(self.db().execute("SELECT count(*) FROM blocks WHERE surface='fetch'").fetchone(), (2,))
+
+    def test_concurrent_lanes_never_push_a_key_past_its_limit(self):
+        """Bug: concurrent lanes push one key past its per-minute limit."""
+        self.serve({"/tf-search": (200, TINYFISH_SEARCH)})
+        kid = {k: hashlib.sha1(k.encode()).hexdigest()[:12] for k in ("test-a", "test-b")}
+        db = self.db()
+        now = time.time()
+        # 2 + 3 units are left of the 29 per key; six processes want one each.
+        db.executemany("INSERT INTO calls VALUES ('search', ?, ?, ?)",
+                       [(kid["test-a"], now, 27), (kid["test-b"], now, 26)])
+        procs = [subprocess.Popen(
+            [sys.executable, WEB, "search", f"concurrent query {n}", "--provider", "tinyfish",
+             "--lane", "t", "--max-wait", "0"],
+            env=self._env(), cwd=self.home, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            for n in range(6)]
+        codes = []
+        for p in procs:
+            p.communicate(timeout=120)
+            codes.append(p.returncode)
+        self.assertEqual(sorted(codes), [0, 0, 0, 0, 0, 75])
+        load = dict(db.execute("SELECT kid, SUM(cost) FROM calls WHERE surface='search' GROUP BY kid"))
+        self.assertEqual(load, {kid["test-a"]: 29, kid["test-b"]: 29})
 
 
 if __name__ == "__main__":
