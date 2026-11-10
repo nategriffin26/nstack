@@ -2216,7 +2216,6 @@ def run_keys(a: argparse.Namespace) -> int:
     except Fatal as exc:
         keys = []
         print(f"tinyfish pool: NONE ({exc})")
-    print("tinyfish funded key: " + ("set, not pooled" if env_key("TINYFISH_API_KEY") else "not set"))
     for name in ("exa", "brave", "serper", "parallel"):
         var = PROVIDER_KEYS[name]
         print(f"{name}: {'set' if env_key(var) else 'NOT SET (' + var + ')'}")
