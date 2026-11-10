@@ -2336,6 +2336,10 @@ def mcp_argv(name: str, args: dict) -> list[str]:
     urls = _strs(args.get("urls"))
     if not urls:
         raise ValueError("urls is required")
+    # Bots call this tool without approval; the CLI's local-file branch is for the shell.
+    for u in urls:
+        if not re.match(r"^https?://", u, re.I):
+            raise ValueError(f"{u!r} is not an http(s) URL; this tool reads http and https URLs only")
     for g in _strs(args.get("grep")):
         opts += ["--grep", g]
     for k in ("context", "max_chars"):

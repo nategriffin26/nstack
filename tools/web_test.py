@@ -97,15 +97,33 @@ class WebCase(unittest.TestCase):
         threading.Thread(target=self.fake.serve_forever, daemon=True).start()
         return self.fake
 
-    def web(self, *args: str, cwd: str | None = None, env_extra: dict | None = None) -> subprocess.CompletedProcess:
+    def _env(self, env_extra: dict | None = None) -> dict:
         env = {"PATH": os.environ.get("PATH", ""), "HOME": self.home, "WEB_HOME": self.web_home,
                "EXA_API_KEY": "test-exa", "TINYFISH_API_KEYS": "test-a,test-b", **(env_extra or {})}
         if self.fake:
             env.update(WEB_EXA_URL=f"{self.fake.url}/exa",
                        WEB_TINYFISH_SEARCH_URL=f"{self.fake.url}/tf-search",
                        WEB_TINYFISH_FETCH_URL=f"{self.fake.url}/tf-fetch")
-        return subprocess.run([sys.executable, WEB, *args], env=env, cwd=cwd or self.home,
+        return env
+
+    def web(self, *args: str, cwd: str | None = None, env_extra: dict | None = None) -> subprocess.CompletedProcess:
+        return subprocess.run([sys.executable, WEB, *args], env=self._env(env_extra), cwd=cwd or self.home,
                               capture_output=True, text=True, timeout=120)
+
+    def mcp(self, *messages: dict, env_extra: dict | None = None) -> list[dict]:
+        """Run `web.py mcp`, send each JSON-RPC message as a line, close stdin, and return the
+        parsed response lines in order."""
+        stdin = "".join(json.dumps(m) + "\n" for m in messages)
+        p = subprocess.run([sys.executable, WEB, "mcp"], env=self._env(env_extra), cwd=self.home,
+                           input=stdin, capture_output=True, text=True, timeout=120)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        return [json.loads(line) for line in p.stdout.splitlines() if line.strip()]
+
+    def mcp_read(self, urls: list[str]) -> dict:
+        """The `result` of one MCP `read` call."""
+        (response,) = self.mcp({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                                "params": {"name": "read", "arguments": {"urls": urls}}})
+        return response["result"]
 
     def db(self) -> sqlite3.Connection:
         self.web("log")   # creates the ledger schema
@@ -430,6 +448,29 @@ class SupportScore(WebCase):
         self.assertNotIn("LOW_SUPPORT", p.stdout)
         self.assertIn("NOTE SUPPORT_UNCHECKED 5 of 5 claims not scored", p.stdout)
         self.assertIn("0 FAIL, 0 WARN", p.stdout)
+
+
+class McpRead(WebCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.serve({})   # any provider call lands here, never on the network
+        self.secret = os.path.join(self.home, "secret.txt")
+        with open(self.secret, "w") as f:
+            f.write("LOCAL-FILE-CANARY\n")
+
+    def test_local_file_is_not_readable(self):
+        """Bug: a bot can read a local file through MCP read."""
+        for target in (self.secret, "~/secret.txt", f"file://{self.secret}"):
+            with self.subTest(target=target):
+                result = self.mcp_read([target])
+                self.assertTrue(result["isError"], result)
+                self.assertNotIn("LOCAL-FILE-CANARY", json.dumps(result))
+
+    def test_one_bad_entry_fails_the_call(self):
+        """Bug: one bad entry is dropped and the rest are read, so a caller cannot tell."""
+        result = self.mcp_read(["https://example.com/page", self.secret])
+        self.assertTrue(result["isError"], result)
+        self.assertEqual(self.fake.requests, [])
 
 
 if __name__ == "__main__":
