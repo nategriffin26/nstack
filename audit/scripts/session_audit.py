@@ -46,6 +46,13 @@ LONG_RUN = re.compile(r"[A-Za-z0-9_\-+/=]{32,}")
 NOT_A_FILE = re.compile(r"(?:xd|agent|proc|out|cfg)://")
 
 
+def own_report(cwd, paths):
+    """Whether every path is inside an owner run's own folder: its report, question and DONE.txt, not an edit."""
+    if not paths or not (cwd or "").startswith(OWNERS):
+        return False
+    return all(os.path.normpath(os.path.join(cwd, os.path.expanduser(p))).startswith(cwd) for p in paths.split(","))
+
+
 def iso(s):
     try:
         return datetime.fromisoformat(s.replace("Z", "+00:00"))
@@ -156,10 +163,11 @@ def parse(path):
                                 if not p and name == "edit":
                                     mm = re.findall(r"\[([^\]#]+)#[0-9A-F]{4}\]", str(a.get("input", "")))
                                     p = ",".join(mm)
-                                s["writes"].append(p)
-                                if s["first_edit"] is None:
-                                    s["first_edit"] = {"ts": ts, "turn": s["turn"], "cost_before": round(s["cost"], 2),
-                                                       "call": s["calls"]}
+                                if not own_report(s["cwd"], p):
+                                    s["writes"].append(p)
+                                    if s["first_edit"] is None:
+                                        s["first_edit"] = {"ts": ts, "turn": s["turn"],
+                                                           "cost_before": round(s["cost"], 2), "call": s["calls"]}
                             elif name == "task":
                                 for tk in a.get("tasks") or []:
                                     spec = {"agent": tk.get("agent") or "task", "name": tk.get("name"),
@@ -335,6 +343,7 @@ def summary_table(recs, splits):
         edited = [r for r in rs if r["writes"] > 0]
         root_edit = [r for r in edited if r["first_edit"] is not None]
         human = [r for r in root_edit if not r["owner_run"]]
+        owner = [r for r in root_edit if r["owner_run"]]
         follow = [max(r["user_turns"] - 1, 0) for r in human]
         return {
             "Root sessions": len(rs),
@@ -342,6 +351,8 @@ def summary_table(recs, splits):
             "Read nstack before the first edit": sum(r["nstack_read"] == "before first edit" for r in root_edit),
             "Read nstack after the first edit": sum(r["nstack_read"] == "after first edit" for r in root_edit),
             "Never read nstack": sum(r["nstack_read"] == "never" for r in root_edit),
+            "Owner runs that edited outside their run folder": len(owner),
+            "Owner runs that read nstack before that edit": sum(r["nstack_read"] == "before first edit" for r in owner),
             "Used the `ask` tool": sum(r["asks"] > 0 for r in edited),
             "20 or more subagents": sum(r["n_subagents"] >= 20 for r in rs),
             "Subagents spawned": sum(r["n_subagents"] for r in rs),
@@ -363,6 +374,7 @@ LIMITS = (
     "and undercount corrections to work Dross briefed. "
     "Author subagents load the nstack skill without a `read` call, so reading the skill is measured for root "
     "sessions that edited a file themselves. "
+    "What an owner run writes inside its own run folder (its report, a question, DONE.txt) is not an edit. "
     "Credentials pasted into a message are masked in the output and remain in omp's own session logs."
 )
 

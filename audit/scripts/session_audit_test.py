@@ -135,6 +135,26 @@ class Audit(AuditCase):
         self.assertEqual(self.summary_row(p.stdout, "Read nstack before the first edit"), ["1"])
         self.assertEqual(self.summary_row(p.stdout, "Read nstack after the first edit"), ["0"])
 
+    def test_an_owner_runs_report_files_are_not_edits(self):
+        """Bug: an owner run that only wrote its report and DONE.txt counts as editing without reading the skill."""
+        owners = os.path.join(self.home, ".dross", "core", "owners", "learning")
+
+        def write(path: str) -> dict:
+            return {"type": "toolCall", "name": "write", "arguments": {"path": path, "content": "x"}}
+        self.add_session("a", [user("go"), assistant([write("report.json"), write(f"{owners}/r1/DONE.txt")])],
+                         "10:00:00", cwd=f"{owners}/r1", project="-owners-r1")
+        self.add_session("b", [user("go"), assistant([write("DONE.txt")]), assistant([write("/work/page/index.html")])],
+                         "11:00:00", cwd=f"{owners}/r2", project="-owners-r2")
+        self.add_session("c", [user("go"), assistant([write("question.json")]), assistant([read_nstack()]),
+                               assistant([write("/work/page/index.html")])],
+                         "12:00:00", cwd=f"{owners}/r3", project="-owners-r3")
+        p = self.run_audit("--out", os.path.join(self.tmp.name, "out"))
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(self.summary_row(p.stdout, "Edited a file"), ["2"])
+        self.assertEqual(self.summary_row(p.stdout, "Read nstack after the first edit"), ["0"])
+        self.assertEqual(self.summary_row(p.stdout, "Owner runs that edited outside their run folder"), ["2"])
+        self.assertEqual(self.summary_row(p.stdout, "Owner runs that read nstack before that edit"), ["1"])
+
     def test_rerun_does_not_replace_the_earlier_run(self):
         """Bug: a rerun replaces the earlier run."""
         self.add_session("s1", [user("go"), assistant([edit_file()])])
