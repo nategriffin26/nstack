@@ -42,6 +42,8 @@ WS = re.compile(r"\n{3,}")
 KEY_PREFIXED = re.compile(r"(?:sk-|ghp_|gho_|github_pat_|xoxb-|xoxp-|AKIA|AIza)[A-Za-z0-9_\-]{8,}")
 KEY_NAMED = re.compile(r"(\b\w*(?:key|token|secret|password)\b\s*[=:]\s*)\S+", re.I)
 LONG_RUN = re.compile(r"[A-Za-z0-9_\-+/=]{32,}")
+# omp's `write` also carries tool calls (xd://), messages to agents, process control, replies and settings.
+NOT_A_FILE = re.compile(r"(?:xd|agent|proc|out|cfg)://")
 
 
 def iso(s):
@@ -149,7 +151,7 @@ def parse(path):
                                     s["skills"][mm.group(1)] += 1
                                     if mm.group(1) == "nstack" and s["first_nstack_read"] is None:
                                         s["first_nstack_read"] = {"ts": ts, "turn": s["turn"], "call": s["calls"]}
-                            elif name in ("write", "edit"):
+                            elif name in ("write", "edit") and not NOT_A_FILE.match(str(a.get("path") or "")):
                                 p = a.get("path") or ""
                                 if not p and name == "edit":
                                     mm = re.findall(r"\[([^\]#]+)#[0-9A-F]{4}\]", str(a.get("input", "")))

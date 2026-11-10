@@ -121,6 +121,20 @@ class Audit(AuditCase):
         with open(os.path.join(self.tmp.name, "out", "summary.md")) as fh:
             self.assertIn("| Never read nstack | 1 |", fh.read())
 
+    def test_a_tool_call_or_message_sent_through_write_is_not_an_edit(self):
+        """Bug: a write to xd://, agent://, proc://, out:// or cfg:// counts as the session's first file edit."""
+        def send(path: str) -> dict:
+            return {"type": "toolCall", "name": "write", "arguments": {"path": path, "content": "{}"}}
+        self.add_session("a", [user("go"), assistant([send("xd://mcp__memory_search")]),
+                               assistant([read_nstack()]), assistant([edit_file()])], "10:00:00")
+        self.add_session("b", [user("go"), assistant([send("agent://Worker"), send("proc://bg_1/kill"),
+                                                      send("out://"), send("cfg://task/save")])], "11:00:00")
+        p = self.run_audit("--out", os.path.join(self.tmp.name, "out"))
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(self.summary_row(p.stdout, "Edited a file"), ["1"])
+        self.assertEqual(self.summary_row(p.stdout, "Read nstack before the first edit"), ["1"])
+        self.assertEqual(self.summary_row(p.stdout, "Read nstack after the first edit"), ["0"])
+
     def test_rerun_does_not_replace_the_earlier_run(self):
         """Bug: a rerun replaces the earlier run."""
         self.add_session("s1", [user("go"), assistant([edit_file()])])
