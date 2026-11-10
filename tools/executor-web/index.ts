@@ -18,8 +18,11 @@ const service = defineProvider({
   health: (check) => mcpHealth(check, { url, headers: headers(check.account) }),
 });
 
+// Both tools only read; listed so Executor confirms it rather than trusting the server's hints.
+const kinds = { read: 'query', search: 'query' } as const;
+
 // The server takes search queries and http(s) URLs only and sends nothing as anyone; each search costs a fraction of a cent on Nate's provider keys, so no call asks. The factory also
 // runs without a caller (app-scope work), which has no bridge account and so no tools.
 export default defineApp({ user: { accounts: { service } } }, async ({ user, signal, cache }) => ({
-  tools: user ? withApprovals(await mcpRouter({ url, account: user.accounts.service, headers: headers(user.accounts.service), signal, cache }), () => never()) : router({}),
+  tools: user ? withApprovals(await mcpRouter({ url, account: user.accounts.service, headers: headers(user.accounts.service), signal, cache }, kinds), () => never()) : router({}),
 }));
