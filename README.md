@@ -21,10 +21,10 @@ Every rule follows from five ideas, and agents reason from them wherever no rule
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nategriffin26/nstack/master/docs/task-flow-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/nategriffin26/nstack/master/docs/task-flow-light.svg">
-  <img alt="How a task runs: ask, size, frame, decide, design, build, prove, report. A one-sitting task goes straight from size to build. You answer one batch of questions and pick the look from real previews." src="https://raw.githubusercontent.com/nategriffin26/nstack/master/docs/task-flow-light.svg" width="600">
+  <img alt="How a task runs: ask, size, frame, decide, design, build, prove, report. A one-sitting task goes straight from size to build. You answer one batch of questions and settle taste from real previews." src="https://raw.githubusercontent.com/nategriffin26/nstack/master/docs/task-flow-light.svg" width="600">
 </picture>
 
-Each question comes with a recommended default, and work that does not depend on the answer keeps moving while you think. The frame's facts are checked with a command, never assumed. Done means it works where you will use it: your phone, the app after a restart, the real CLI, real data.
+Each question comes with a recommended default, and work that does not depend on the answer keeps moving while you think. The frame's facts are checked with a command, never assumed. Done means it works where it is used: the app on your phone or simulator, the installed command, the deployed service, the rendered file, each with real data.
 
 ## What's in it
 
@@ -104,7 +104,7 @@ The installer symlinks the skills, commands and extensions into `~/.omp/agent/`,
 
 ## Credits
 
-- [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan (MIT, 0.15.29): agent control in `skills/nstack` › Agents (orchestrate, swarm, interrogate), the measurement checks and verify script in `nstack-verify` (benchmark-checklist, explain-the-number, hillclimb, create-verification-skill), the rules in › Fixes (bug-fix, attack-the-premise, fix-root-causes), `/nstack correct`, and `nstack-formal` (create- and maintain-formal-verification-skill).
+- [pstack](https://github.com/cursor/plugins/tree/main/pstack) by Lauren Tan (MIT, 0.15.29): agent control in `skills/nstack` › Agents (orchestrate, swarm, interrogate), the measurement checks and verify script in `nstack-verify` (benchmark-checklist, explain-the-number, hillclimb, create-verification-skill, and the guide's "match the check to the change"), the rules in › Fixes (bug-fix, attack-the-premise, fix-root-causes), `/nstack correct`, and `nstack-formal` (create- and maintain-formal-verification-skill).
 - [Specula](https://github.com/specula-org/Specula) (Apache-2.0): `nstack-formal`'s history-mined targets and trace validation.
 - [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): the grilling behind `nstack-grill`, and the deletion test and history-read targets in `/nstack simplify`.
 - [helix](https://github.com/DocumentDrivenDX/helix): the no-process-porn skill.

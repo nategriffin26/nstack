@@ -5,13 +5,15 @@ description: Prove work is done where Nate will use it, and vet numbers before t
 
 # nstack verify
 
-A check proves only what it can see: a fix can pass its tests and still be broken on his phone, his app or his data.
+A check proves only what it can see: a fix can pass its tests and still be broken where he uses it: on the device, in the installed command, on his data.
 
 ## Instruments, cheapest first
 1. Typecheck and the targeted tests that can see the change fail.
 2. The real thing: start the app, CLI, service or pipeline and drive the changed path with real inputs.
 3. His surface after the real update path (restart, OTA, reinstall, reload), or the real file he will open. If you cannot reach it, say so and hand him the one action that lets him check.
-4. Physical devices only for what nothing else shows (push, haptics, frame timing).
+4. A physical device or the bench only for what nothing else shows (push, haptics, frame timing, a motor under load, a signal on a board).
+
+Match the check to the change: a command change runs the real command; a screen change walks the changed flow in the running app; a parser, importer or migration replays a saved input; a speed change compares before and after on the same input; a storage change reads back what was written; a document or figure is opened as rendered.
 
 Look at every screen or output the change touches, in each state, beside his pick, and fix visible defects before he sees them; the taste verdict is his.
 
