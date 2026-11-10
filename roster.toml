@@ -62,8 +62,8 @@ thinking = "medium"
 note = "slower, and weaker on judgment than opus or astra"
 
 [agents.fable]
-model = "anthropic/claude-fable-5-1"
-label = "Claude Fable 5.1"
+model = "anthropic/claude-fable-5-2"
+label = "Claude Fable 5.2"
 family = "anthropic"
 thinking = "medium"
 note = "Opus 5.5 beats it today"
