@@ -54,7 +54,7 @@ For one screen, one page section or one short document: one exemplar he named, `
 - Brand recognition: in a test Opus and Sol named Grok Bot from its screenshot alone; blind means unlabelled, not unrecognisable. Keep the held-out judge and Nate's pick as the check.
 
 ## Scripts
-- `scripts/judge.py`: `pairwise`, `checks` and `score` over `omp -p` with blind, fresh judges; `--help` lists the arguments. Outputs JSON with every judge's reasons and gaps.
+- `scripts/judge.py`: `pairwise`, `checks` and `score` over `omp -p` with blind, fresh judges that see their files under neutral names; `--help` lists the arguments. Judges are roster agent names (`--judges opus,sol`). Outputs JSON with every judge's reasons and gaps. A judge whose call fails prints `error` and makes the script exit 1, so rerun the round for that judge and never count it.
 
 ## References
 - `references/evidence.md`: the studies and proof-run numbers behind each step, with links. Read it when a step seems wrong for your case.
