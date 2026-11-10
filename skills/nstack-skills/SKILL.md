@@ -58,7 +58,7 @@ Fill `references/template.md`. The bar:
 
 ## Save and tell Nate
 
-- nstack and other repos: commit (nstack: push after the personal-information check). A skill directory outside git: copy it to `~/Projects/nstack/local/backups/` before editing. Dross: `skill_update`, which keeps the old version. Brain: `skill_save` with the digest you read as `base`.
+- nstack and other repos: commit (nstack: push after the personal-information check in its `AGENTS.md`). A skill directory outside git: copy it to `~/Projects/nstack/local/backups/` before editing. Dross: `skill_update`, which keeps the old version. Brain: `skill_save` with the digest you read as `base`.
 - Tell Nate in one line: the skill, what it now says or does differently, and how to undo it.
 
 ## When a skill misfires
