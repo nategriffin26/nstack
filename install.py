@@ -20,9 +20,10 @@ Before the first install changes anything, every managed path is copied to local
 with manifest.json; --uninstall restores from it. Every later install also writes a dated backup, and removes links
 into this repository that no current file backs (a skill or command since deleted).
 """
-import json, os, re, shutil, subprocess, sys, tempfile, time, tomllib
+import functools, json, os, re, shutil, subprocess, sys, tempfile, time, tomllib
 from fnmatch import fnmatchcase
 from pathlib import Path
+from typing import NamedTuple
 
 REPO = Path(__file__).resolve().parent
 ROSTER = REPO / "roster.toml"
@@ -66,7 +67,10 @@ def template_role(r, name):
     return next((role for role in TEMPLATE_ROLES if name in r["roles"][role]["agents"]), "author")
 
 
-def described(r, name):
+def described(r, name, eff):
+    """A pinned agent shows only its model, since the roster's label and note describe the roster's model."""
+    if eff.model[name] != r["agents"][name]["model"]:
+        return f"`{name}` (pinned in omp to {eff.model[name]})"
     a = r["agents"][name]
     return f"`{name}` ({a['label']}" + (f"; {a['note']}" if a.get("note") else "") + ")"
 
@@ -76,12 +80,12 @@ def either(items):
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " or " + items[-1]
 
 
-def reviewers(r):
-    """reviewer -> the authors whose work it reviews: the first judgment agent of another family."""
-    judges = names_in(r, JUDGMENT_ROLES)
+def reviewers(r, eff):
+    """reviewer -> the authors whose work it reviews: the first spawnable judgment agent of another family."""
+    judges = [j for j in names_in(r, JUDGMENT_ROLES) if eff.spawnable(j)]
     out = {}
     for name in r["agents"]:
-        if template_role(r, name) != "author":
+        if template_role(r, name) != "author" or not eff.spawnable(name):
             continue
         family = r["agents"][name]["family"]
         reviewer = next((j for j in judges if r["agents"][j]["family"] != family), None)
@@ -119,10 +123,15 @@ def agent_file(r, name):
             f"model: {a['model']}", f"thinkingLevel: {a['thinking']}"]
     role = template_role(r, name)
     if role == "author":
-        readers, lanes = names_in(r, ("reader",)), names_in(r, ("research", "verify"))
-        head += ["autoloadSkills: [nstack]", "spawns:"] + [f"  - {n}" for n in readers + lanes]
+        # An author must not be told to delegate to an agent omp will not spawn.
+        eff = effective(r)
+        readers = [n for n in names_in(r, ("reader",)) if eff.spawnable(n)]
+        lanes = [n for n in names_in(r, ("research", "verify")) if eff.spawnable(n)]
+        spawns = [f"  - {n}" for n in readers + lanes]
+        head += ["autoloadSkills: [nstack]"] + (["spawns:"] + spawns if spawns else ["spawns: []"])
         body = (REPO / "agents" / "author.md").read_text()
-        body = body.replace("{readers}", ", ".join(readers)).replace("{research}", ", ".join(lanes))
+        body = (body.replace("{readers}", ", ".join(readers) or "none enabled")
+                .replace("{research}", ", ".join(lanes) or "none enabled"))
     elif role == "reader":
         head += ["spawns: []"]
         body = (REPO / "agents" / "reader.md").read_text()
@@ -135,6 +144,7 @@ def agent_file(r, name):
 
 def routing(r):
     agents, roles = r["agents"], r["roles"]
+    eff = effective(r)
     lines = [ROUTING_HEADING, "",
              "Generated from Nate's model roster (`~/Projects/nstack/roster.toml`), set in Dross Settings › Models. "
              "Change models and allowed models there; never hand-edit generated files.", "",
@@ -144,23 +154,33 @@ def routing(r):
              "## Roles", ""]
     for role in ROLES:
         entry = roles[role]
-        lines.append(f"- {entry['title']}: {', '.join(described(r, n) for n in entry['agents'])}. "
-                     f"{entry['does'][0].upper()}{entry['does'][1:]}.")
-    unassigned = [n for n in agents if not any(n in roles[x]["agents"] for x in ROLES)]
+        names = [n for n in entry["agents"] if eff.spawnable(n)]
+        if names:
+            who = ", ".join(described(r, n, eff) for n in names)
+        elif role == "author":
+            who = "no agent is enabled"
+        else:
+            who = "no agent is enabled; the default author takes it"
+        lines.append(f"- {entry['title']}: {who}. {entry['does'][0].upper()}{entry['does'][1:]}.")
+    unassigned = [n for n in agents if not any(n in roles[x]["agents"] for x in ROLES) and eff.spawnable(n)]
     if unassigned:
-        lines.append(f"- Only when Nate names it: {', '.join(described(r, n) for n in unassigned)}.")
-    pairs = "; ".join(f"{either(f'`{n}`' for n in authors)} work goes to `{rev}`" for rev, authors in reviewers(r).items())
+        lines.append(f"- Only when Nate names it: {', '.join(described(r, n, eff) for n in unassigned)}.")
+    blocked = [f"`{n}`" for n in agents if not eff.spawnable(n)]
+    if blocked:
+        lines.append(f"- Switched off in omp or missing from its catalog, so not spawnable: {', '.join(blocked)}.")
+    pairs = "; ".join(f"{either(f'`{n}`' for n in authors)} work goes to `{rev}`" for rev, authors in reviewers(r, eff).items())
     if not pairs:
-        pairs = "no judgment model of another family is assigned"
+        pairs = "none is enabled, so say in your report that the change had no review"
     levels = {}
     for name, a in agents.items():
-        levels.setdefault(a["thinking"], []).append(f"`{name}`")
+        if eff.spawnable(name):
+            levels.setdefault(a["thinking"], []).append(f"`{name}`")
     defaults = "; ".join(f"{level} for {', '.join(names)}" for level, names in levels.items())
+    effort = f"Effort comes from the roster ({defaults}) and Nate's words." if defaults else "Effort comes from Nate's words."
     lines += ["",
               "Authors (every agent except the readers, research and verify agents) load `skill://nstack` and delegate "
               "only to the readers and research lanes unless their brief grants more; research and verification lanes "
-              f"run only through `skill://nstack-research`. Reviews come from another family: {pairs}. Effort comes from the "
-              f"roster ({defaults}) and Nate's words."]
+              f"run only through `skill://nstack-research`. Reviews come from another family: {pairs}. {effort}"]
     return "\n".join(lines)
 
 
@@ -282,7 +302,7 @@ def backup(r):
 
 def install():
     r = load_roster()
-    problems = roster_problems(r) or model_problems(r) + config_problems(r, [])
+    problems = roster_problems(r) or model_problems(r) + config_problems([])
     if problems:
         sys.exit("\n".join(f"FAIL {p}" for p in problems) + "\nnothing installed")
     dest = backup(r)
@@ -344,6 +364,15 @@ def load_yaml(text):
         return json.loads(run.stdout)
 
 
+@functools.cache
+def omp_config():
+    """omp's config.yml, or {} when it is absent; raises when it cannot be parsed."""
+    config = OMP / "config.yml"
+    return (load_yaml(config.read_text()) or {}) if config.exists() else {}
+
+
+# `omp models --json` can take seconds and Dross waits on this installer, so it runs once per process.
+@functools.cache
 def catalog():
     """omp's model catalog as selector -> supported thinking levels, or None when omp is unavailable."""
     try:
@@ -358,30 +387,59 @@ def catalog():
     return {m["selector"]: m.get("thinking") or [] for m in items if m.get("selector")}
 
 
+class Effective(NamedTuple):
+    model: dict  # agent -> the model omp runs it on
+    thinking: dict  # agent -> the thinking level omp runs it at
+    off: set
+    unavailable: set
+
+    def spawnable(self, name):
+        return name not in self.off and name not in self.unavailable
+
+
+def effective(r):
+    """The roster as omp will run it, from three inputs: roster.toml; omp's task.disabledAgents, where a roster agent
+    named is off; and omp's model catalog, where an agent whose effective model is missing is unavailable. omp's model
+    priority is "task.agentModelOverrides → agent frontmatter → configured task role/session fallback", so an agent's
+    override, thinking suffix removed, is its effective model, and pins the agent when it differs from the roster's.
+    omp's settings are Nate's choices, so they shape the routing rather than fail the install."""
+    try:
+        task = omp_config().get("task") or {}
+    except Exception:
+        task = {}  # config_problems reports an unreadable config
+    disabled, overrides = set(task.get("disabledAgents") or []), task.get("agentModelOverrides") or {}
+    model, thinking = {}, {}
+    for name, a in r["agents"].items():
+        override = overrides.get(name) or ""
+        model[name] = THINKING_SUFFIX.sub("", override) or a["model"]
+        suffix = THINKING_SUFFIX.search(override)
+        thinking[name] = suffix.group(1) if suffix else a["thinking"]
+    models = catalog()
+    unavailable = set() if models is None else {n for n in r["agents"] if model[n] not in models}
+    return Effective(model, thinking, {n for n in r["agents"] if n in disabled}, unavailable)
+
+
 def model_problems(r):
-    """Every roster model and default thinking level must exist in omp's catalog, so a typo or a model
-    omp does not know yet fails here rather than at spawn time."""
+    """Every agent's thinking level must be one its effective model supports in omp's catalog, because omp rejects the
+    spawn otherwise. A model missing from the catalog is a warning in omp_notices instead."""
     models = catalog()
     if models is None:
         print("WARN cannot run `omp models --json`; roster models not verified against omp's catalog")
         return []
+    eff = effective(r)
     problems = []
-    for name, a in r["agents"].items():
-        if a["model"] not in models:
-            problems.append(f"roster: {name}'s model {a['model']} is not in omp's catalog (`omp models`)")
-        elif models[a["model"]] and a["thinking"] not in models[a["model"]]:
-            problems.append(f"roster: {name}'s thinking {a['thinking']} is not one of {models[a['model']]}")
+    for name in r["agents"]:
+        levels = models.get(eff.model[name])
+        if levels and eff.thinking[name] not in levels:
+            problems.append(f"roster: {name}'s thinking {eff.thinking[name]} is not one of {levels} for {eff.model[name]}")
     return problems
 
 
-def config_problems(r, skill_names):
-    config = OMP / "config.yml"
-    if not config.exists():
-        return []
+def config_problems(skill_names):
     try:
-        cfg = load_yaml(config.read_text()) or {}
+        cfg = omp_config()
     except Exception as e:  # a parse failure makes the check meaningless, so it fails loudly
-        return [f"cannot read {config}: {e}"]
+        return [f"cannot read {OMP / 'config.yml'}: {e}"]
     problems = []
     skills = cfg.get("skills") or {}
     if skills.get("enabled") is False:
@@ -393,15 +451,6 @@ def config_problems(r, skill_names):
             problems.append(f"config.yml includeSkills does not admit {name}")
         if any(fnmatchcase(name, pat) for pat in ignored) or f"skill:{name}" in disabled_ext:
             problems.append(f"config.yml excludes {name}")
-    task = cfg.get("task") or {}
-    disabled = set(task.get("disabledAgents") or [])
-    overrides = task.get("agentModelOverrides") or {}
-    for name, a in r["agents"].items():
-        if name in disabled:
-            problems.append(f"config.yml task.disabledAgents disables roster agent {name}")
-        override = overrides.get(name)
-        if override and THINKING_SUFFIX.sub("", override) != a["model"]:
-            problems.append(f"config.yml task.agentModelOverrides.{name} selects {override}, expected {a['model']}")
     return problems
 
 
@@ -411,14 +460,29 @@ OMP_JUDGMENT_ROLES = ("default", "plan", "slow", "task", "advisor")
 THINKING_SUFFIX = re.compile(r":(off|minimal|low|medium|high|xhigh|max|auto)$")
 
 
+def omp_notices(r):
+    """One line per roster agent omp runs differently from the roster. Switching an agent off and pinning its model
+    are Nate's choices in omp, so they are NOTEs; a model missing from omp's catalog is not, so it is a WARN."""
+    eff = effective(r)
+    lines = []
+    for name, a in r["agents"].items():
+        if name in eff.off:
+            lines.append(f"NOTE {name} is switched off in omp (task.disabledAgents); routing leaves it out")
+        if eff.model[name] != a["model"]:
+            lines.append(f"NOTE {name} is pinned in omp to {eff.model[name]} (task.agentModelOverrides); routing names that model")
+        if name in eff.unavailable:
+            lines.append(f"WARN {name}'s model {eff.model[name]} is not in omp's catalog (`omp models`); routing leaves it out")
+    return lines
+
+
 def config_warnings(r):
-    """Warn when a native judgment role uses a model absent from the worker roster."""
+    """Warn when a native judgment role uses a model no roster agent runs on."""
     try:
-        cfg = load_yaml((OMP / "config.yml").read_text()) or {}
+        cfg = omp_config()
     except Exception:
         return []  # config_problems reports an unreadable config
     roles = cfg.get("modelRoles") or {}
-    used = {a["model"] for a in r["agents"].values()}
+    used = set(effective(r).model.values())
     advisor_on = (cfg.get("advisor") or {}).get("enabled") is True
     warnings = []
     for role in OMP_JUDGMENT_ROLES:
@@ -470,7 +534,9 @@ def check():
             if not path.exists() or rendered(source) not in path.read_text():
                 problems.append(f"{path} lacks the current block from {source}")
         problems += model_problems(r)
-        problems += config_problems(r, skill_names)
+        problems += config_problems(skill_names)
+        for line in omp_notices(r):
+            print(line)
         for w in config_warnings(r):
             print("WARN", w)
     for p in problems:
