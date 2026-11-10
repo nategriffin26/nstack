@@ -1,6 +1,6 @@
 # Finding references
 
-Adapted from blank-page's `references/finding-references.md` (StewdioAI/blank-page, MIT, Cekura, Inc.; `UPSTREAM.md`). Its finder is vendored unchanged as `~/.omp/agent/skills/video-brief/scripts/find_refs.py`, written `find_refs.py` below: run it with no arguments for the commands. It needs only Python, curl and ffmpeg. Save everything under `$P/refs/` (the production folder), named by handle: `a1.jpg`, `m2.mp4`.
+Adapted from blank-page's `references/finding-references.md` (StewdioAI/blank-page, MIT, Cekura, Inc.; `UPSTREAM.md`). Its finder is vendored as `~/.omp/agent/skills/video-brief/scripts/find_refs.py`, written `find_refs.py` below: run it with no arguments for the commands. It needs only Python, curl and ffmpeg. Save everything under `$P/refs/` (the production folder), named by handle: `a1.jpg`, `m2.mp4`.
 
 ## Roles
 

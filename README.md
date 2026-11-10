@@ -77,7 +77,7 @@ Each question comes with a recommended default, and work that does not depend on
 
 ## Install
 
-Needs omp and Python 3.11 or newer. Used on macOS.
+Needs omp and Python 3.12 or newer. Used on macOS.
 
 ```sh
 gh repo clone nategriffin26/nstack ~/Projects/nstack
@@ -89,13 +89,13 @@ python3 install.py --uninstall  # remove nstack and restore what the first insta
 
 The installer symlinks the skills, commands and extensions into `~/.omp/agent/`, `tools/web.py` to `~/.local/bin/web` and `tools/skill_eval.py` to `~/.local/bin/skill-eval`, generates one agent file per roster agent, and writes marked blocks into `~/.omp/agent/RULES.md` and `~/.omp/agent/AGENTS.md`. The first install backs up everything it touches to `local/backups/baseline/`, and `--uninstall` restores from there; every later install writes a dated backup and removes links to files the repository no longer has. Edit files in the repository, never the installed copies, and rerun the installer.
 
-`web` reads its keys from the environment or `~/.omp/agent/keys.env`: `EXA_API_KEY` for search, `TINYFISH_API_KEYS` (comma-separated free keys) for reading and as the search fallback, optionally `BRAVE_API_KEY` and `SERPER_API_KEY`, and `OPENROUTER_API_KEY` for the support score `web check` gives each claim (without it, check skips the score and says so). `web save` and `web prior` keep research in [nbrain](https://github.com/nategriffin26/nbrain) when its CLI is on PATH.
+`web` reads its keys from the environment or `~/.omp/agent/keys.env`: `EXA_API_KEY` for search, `TINYFISH_API_KEYS` (comma-separated free keys) for reading and as the search fallback, optionally `BRAVE_API_KEY`, `SERPER_API_KEY` and `PARALLEL_API_KEY`, and `OPENROUTER_API_KEY` for the support score `web check` gives each claim (without it, check skips the score and says so). `web save` and `web prior` keep research in [nbrain](https://github.com/nategriffin26/nbrain) when its CLI is on PATH.
 
-`--check` validates every roster model against your `omp models` catalog, so on a different setup edit `roster.toml` before the first install.
+omp's own agent settings decide which roster agents are on and which model each runs: the installer leaves out of the routing any agent omp has switched off or whose model is not in `omp models`, names a pinned model as omp runs it, and says so when it does. On a different setup, edit `roster.toml` to models you have.
 
 ## Make it yours
 
-1. **Fork and clone** it anywhere; the installer links from wherever the repository sits. My path (`~/Projects/nstack`) and my model settings page appear only in the routing text `install.py` generates.
+1. **Fork and clone** it anywhere; the installer links from wherever the repository sits. `git grep -n "Projects/nstack\|Dross Settings"` lists the lines that name my path and my model settings page.
 2. **Put your name in.** `git grep -n Nate` finds every mention. Swap my phone, Mac and data for the places you check your own work.
 3. **Pick your models.** `roster.toml` maps roles (author, systems, taste, implementer, reader, research, verify) to agents and agents to models from `omp models`; `family` decides which models review each other.
 4. **Install and probe.** Run a fresh omp session on an ordinary-looking task in a scratch repo, and judge it by what the agent actually read, ran and changed, not by what it says it followed.

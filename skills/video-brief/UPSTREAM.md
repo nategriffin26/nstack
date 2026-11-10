@@ -1,6 +1,6 @@
 # Upstream
 
-`scripts/find_refs.py` is vendored unchanged from https://github.com/StewdioAI/blank-page (MIT, Copyright (c) 2026 Cekura, Inc.) at commit cd42b37fa7cd0a5550e51f45cc8f82f63377b98c, `skills/blank-page/scripts/find_refs.py`. `references/references.md` is adapted from that repository's `skills/blank-page/references/finding-references.md`, and the reference roles, the fence, the turn and delta notes in `SKILL.md` come from its `SKILL.md`. License in `LICENSE`.
+`scripts/find_refs.py` is vendored from https://github.com/StewdioAI/blank-page (MIT, Copyright (c) 2026 Cekura, Inc.) at commit cd42b37fa7cd0a5550e51f45cc8f82f63377b98c, `skills/blank-page/scripts/find_refs.py`. `references/references.md` is adapted from that repository's `skills/blank-page/references/finding-references.md`, and the reference roles, the fence, the turn and delta notes in `SKILL.md` come from its `SKILL.md`. License in `LICENSE`.
 
 Local changes: `find_refs.py`'s contact-sheet tiles skip their drawn numbers when ffmpeg has no `drawtext` filter (Homebrew's ffmpeg on this Mac has none, and the unchanged script crashed with `FileNotFoundError` on every `channel … <dir>` and `search … <dir>`); the sheet's JSON line then says `"numbered": false`, and tiles stay in `n` order, row-major. Nothing else changed. Stewdio's file addressing (`in stewdio, <file>`), its standing defaults (white background, about 5 s loops, sequences under 15–20 s) and its prompt templates are not used here.
 

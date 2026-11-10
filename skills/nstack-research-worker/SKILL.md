@@ -120,7 +120,7 @@ Trail · as of YYYY-MM-DD · <run-slug>
 ```
 
 - `datum` is copied from text you read; `check` looks for it on the stored page. `readDepth: full` only when you opened the relevant section, not just the preview.
-- `fetchedUrlCount` comes from `web log --lane <lane>`; `uniqueSourceCount` is distinct URLs across claims. Counts are telemetry; never pad them.
+- `fetchedUrlCount` is the number of URLs the first line of `web log --lane <lane>` reports as ok; `uniqueSourceCount` is distinct URLs across claims. Counts are telemetry; never pad them.
 - `toolHealth` lists only the surfaces you used, with counts and exact failure strings; `check` compares it with your log.
 - Calculations cite their inputs and show the formula. Recommendations go in `verdict` or an inference claim, never dressed as sourced fact.
 - Ideation lanes deliver `directions: [{direction, rationale, inspiredBy, nearestExistingWork, risk}]` in place of claims; cited evidence still meets the read floor.
