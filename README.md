@@ -50,7 +50,7 @@ Each question comes with a recommended default, and work that does not depend on
 | `extensions/brief.ts`, `extensions/brief.md` | when typed, as `/brief` | A briefing agent reads the request and the code, docs and history it touches, then sends the brief as your prompt in the same session |
 | `tools/brief_eval.py` | by hand | Measures `/brief` on real past requests, briefed against direct, judged by a model of another family |
 | `roster.toml`, `agents/` | at install | Which model does which job; generates omp's agent files and the routing section in `~/.omp/agent/AGENTS.md` |
-| `audit/scripts/` | by hand | The session metrics the rules were tuned against, read from omp's local session store |
+| `audit/scripts/session_audit.py` | by hand | Reads omp's local session logs and prints what they show per period: sessions that read the nstack skill before, after or never before their first edit, subagents spawned, questions asked, cost, and the follow-up messages a session needed. The other scripts in `audit/scripts/` are the October 2026 audit's studies |
 
 ## Commands
 
