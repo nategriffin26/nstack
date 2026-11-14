@@ -47,6 +47,48 @@ function childEnv(): Record<string, string> {
 	return env;
 }
 
+// ---------- prices ----------
+
+/** USD per million tokens. Gemini caching is implicit, so a cache write costs nothing extra. */
+export interface Price {
+	input: number;
+	output: number;
+	cacheRead: number;
+	cacheWrite: number;
+}
+
+/** A price change at midnight US Pacific, as Google states its dates. */
+const DEC_1_2026 = Date.UTC(2026, 11, 1, 8);
+const JAN_1_2027 = Date.UTC(2027, 0, 1, 8);
+const ARGON_TIER: { from: number; price: Price }[] = [
+	{ from: 0, price: { input: 2, output: 10, cacheRead: 0.1, cacheWrite: 0 } },
+	{ from: DEC_1_2026, price: { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 0 } },
+];
+
+/**
+ * What each agy model's tokens would cost on the pay-per-token API, so omp's cost views show the plan's value; the plan
+ * itself bills nothing per token. Gemini: ai.google.dev/gemini-api/docs/pricing (read 2026-11-13). Claude: Anthropic's
+ * list prices. GPT-OSS 120B: OpenRouter's price, since Google lists none for it. Keyed by agy's model id without effort.
+ */
+const PRICES: Record<string, { from: number; price: Price }[]> = {
+	"gemini-4-carbon": ARGON_TIER,
+	"gemini-4-argon": ARGON_TIER,
+	"gemini-pro-orchestrator-g1-pro": ARGON_TIER,
+	"gemini-4-hydrogen": [{ from: 0, price: { input: 1.5, output: 7.5, cacheRead: 0.075, cacheWrite: 0 } }],
+	"gemini-3.8-flash": [
+		{ from: 0, price: { input: 0.75, output: 3.75, cacheRead: 0.075, cacheWrite: 0 } },
+		{ from: JAN_1_2027, price: { input: 1.5, output: 7.5, cacheRead: 0.15, cacheWrite: 0 } },
+	],
+	"claude-opus-5-5": [{ from: 0, price: { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 } }],
+	"claude-sonnet-5-5": [{ from: 0, price: { input: 2, output: 10, cacheRead: 0.1, cacheWrite: 2.5 } }],
+	"gpt-oss-120b": [{ from: 0, price: { input: 0.15, output: 0.6, cacheRead: 0.075, cacheWrite: 0 } }],
+};
+
+/** The price in force at `at` (ms since epoch), or undefined for a model with no listed price. */
+export function priceOn(modelId: string, at: number): Price | undefined {
+	return PRICES[modelId]?.findLast(step => step.from <= at)?.price;
+}
+
 // ---------- models ----------
 
 export interface AgyModel {
@@ -77,17 +119,20 @@ async function listModels() {
 	await proc.exited;
 	const models = parseModels(out);
 	if (models.length === 0) throw new Error(`agy models listed nothing: ${(err || out).trim() || `exit ${proc.exitCode}`}`);
-	return models.map(model => ({
-		id: model.id,
-		name: `${model.name} (agy)`,
-		api: API,
-		reasoning: model.efforts.length > 0,
-		thinking: model.efforts.length > 0 ? { mode: "effort" as const, efforts: model.efforts } : undefined,
-		input: ["text", "image"] as ("text" | "image")[],
-		cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-		contextWindow: 1_048_576,
-		maxTokens: 65_536,
-	}));
+	return models.map(model => {
+		const price = priceOn(model.id, Date.now());
+		return {
+			id: model.id,
+			name: `${model.name} (agy${price ? "" : ", unpriced"})`,
+			api: API,
+			reasoning: model.efforts.length > 0,
+			thinking: model.efforts.length > 0 ? { mode: "effort" as const, efforts: model.efforts } : undefined,
+			input: ["text", "image"] as ("text" | "image")[],
+			cost: price ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+			contextWindow: 1_048_576,
+			maxTokens: 65_536,
+		};
+	});
 }
 
 /** The agy model id for an omp model and effort: the effort suffix when the model has efforts. */
@@ -440,6 +485,16 @@ export default function agy(pi: ExtensionAPI) {
 				output.usage.cacheWrite = usage.cachedWriteTokens ?? 0;
 				output.usage.totalTokens = usage.totalTokens ?? 0;
 				if (usage.thoughtTokens) output.usage.reasoningTokens = usage.thoughtTokens;
+				// Priced at the request's start, like omp's own providers across a price change.
+				const price = priceOn(model.id, output.timestamp);
+				if (price) {
+					const cost = output.usage.cost;
+					cost.input = (output.usage.input * price.input) / 1e6;
+					cost.output = (output.usage.output * price.output) / 1e6;
+					cost.cacheRead = (output.usage.cacheRead * price.cacheRead) / 1e6;
+					cost.cacheWrite = (output.usage.cacheWrite * price.cacheWrite) / 1e6;
+					cost.total = cost.input + cost.output + cost.cacheRead + cost.cacheWrite;
+				}
 
 				switch (result.stopReason) {
 					case "cancelled":
