@@ -8,7 +8,7 @@
 What it manages:
   ~/.omp/agent/skills/<name>              symlinks to skills/<name>; other nstack* skills are removed
   ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack)
-  ~/.omp/agent/extensions/<name>.ts       symlinks to extensions/*.ts (nstack-guard, brief)
+  ~/.omp/agent/extensions/<name>.ts       symlinks to extensions/*.ts (nstack-guard, brief, agy)
   ~/.local/bin/web                        symlink to tools/web.py, the research tool the research skills call
   ~/.local/bin/skill-eval                 symlink to tools/skill_eval.py, the routing check nstack-skills calls
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
@@ -168,9 +168,15 @@ def routing(r):
     blocked = [f"`{n}`" for n in agents if not eff.spawnable(n)]
     if blocked:
         lines.append(f"- Switched off in omp or missing from its catalog, so not spawnable: {', '.join(blocked)}.")
-    pairs = "; ".join(f"{either(f'`{n}`' for n in authors)} work goes to `{rev}`" for rev, authors in reviewers(r, eff).items())
+    paired = reviewers(r, eff)
+    pairs = "; ".join(f"{either(f'`{n}`' for n in authors)} work goes to `{rev}`" for rev, authors in paired.items())
+    covered = {n for authors in paired.values() for n in authors}
+    unreviewed = [n for n in agents if template_role(r, n) == "author" and eff.spawnable(n) and n not in covered]
     if not pairs:
         pairs = "none is enabled, so say in your report that the change had no review"
+    elif unreviewed:
+        pairs += (f"; for {either(f'`{n}`' for n in unreviewed)} work none is enabled, "
+                  "so say in your report that the change had no review")
     levels = {}
     for name, a in agents.items():
         if eff.spawnable(name):

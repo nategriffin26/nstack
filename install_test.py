@@ -33,7 +33,8 @@ AGENTS = {
     "verifier": ("anthropic/claude-sonnet-5-5", "Claude Sonnet 5.5", "anthropic", "high", None),
 }
 SPARE = {"spare": ("anthropic/claude-haiku-5", "Claude Haiku 5", "anthropic", "medium", None)}
-MODELS = sorted({a[0] for a in {**AGENTS, **SPARE}.values()})
+OTHER_FAMILY = {"gem": ("google/gemini-4-argon", "Gemini 4 Argon", "google", "high", None)}
+MODELS = sorted({a[0] for a in {**AGENTS, **SPARE, **OTHER_FAMILY}.values()})
 
 
 def roster_toml(roles: dict, agents: dict) -> str:
@@ -122,6 +123,15 @@ class SwitchedOff(InstallCase):
         routing = self.installed("AGENTS.md")
         self.assertNotIn("Only when Nate names it", routing)
         self.assertIn("not spawnable: `astra`, `spare`.", routing)
+
+    def test_authors_without_a_reviewer_are_told_so(self):
+        """Bug: once one author has a reviewer of another family, authors with none get no instruction about review."""
+        p = self.install("task:\n  disabledAgents: [astra]\n", agents={**AGENTS, **OTHER_FAMILY})
+        self.assertEqual(p.returncode, 0, p.stdout)
+        routing = self.installed("AGENTS.md")
+        self.assertIn("`gem` work goes to `opus`", routing)
+        self.assertIn("for `opus` or `sonnet` work none is enabled, so say in your report that the change had no review",
+                      routing)
 
 
 class Catalog(InstallCase):

@@ -99,3 +99,10 @@ model = "openrouter/google/gemini-4-argon"
 label = "Gemini 4 Argon"
 family = "google"
 thinking = "high"
+
+[agents.agy]
+model = "agy/gemini-4-argon"
+label = "Gemini 4 Argon in Antigravity CLI"
+family = "google"
+thinking = "high"
+note = "runs inside Google's agy with agy's own tools, not omp's, on the Antigravity plan"
