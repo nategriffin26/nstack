@@ -2,7 +2,7 @@
 
 How I build software with coding agents: a short set of standing rules, skills that load when the work calls for them, and a few slash commands for [omp](https://github.com/can1357/oh-my-pi).
 
-Coding agents fail in predictable ways on real work. They start building before the facts and decisions that decide the result are pinned down. They build more than was asked, in more parts than the problem needs. They build a look at full scale before anyone has seen it. They call it done because the tests pass, not because it works where it will be used. And they keep spending agents, reviews and tests long after more of it stops changing the outcome. nstack aims every step at the end state: the simplest correct design, finished in every state and crafted, proven where it is used. It works when I can hand over a large feature or a whole product once and get back what a company of principal engineers would have designed over years.
+Coding agents fail in predictable ways on real work. They start building before the facts and decisions that decide the result are pinned down. They build more than was asked, in more parts than the problem needs. They build a look at full scale before anyone has seen it. They patch a fault where it shows instead of fixing it at the root, and the next agent copies the patch. They call it done because the tests pass, not because it works where it will be used. And they keep spending agents, reviews and tests long after more of it stops changing the outcome. nstack aims every step at the end state: the simplest correct design, finished in every state and crafted, proven where it is used. It works when I can hand over a large feature or a whole product once and get back what a company of principal engineers would have designed over years.
 
 It is written for one person, me (Nate), and tuned against an audit of about a thousand of my own agent sessions. The rules name me, my Mac and my phone on purpose: an agent does better with a specific person and a specific setup than with "the user". It is published as a reference. Fork it and make it yours.
 
@@ -13,7 +13,7 @@ Every rule follows from five ideas, and agents reason from them wherever no rule
 - **The end state is the work.** A plan, check, review or question earns its place by being likely to change what the person gets.
 - **Proportion.** The person's attention, wall time and usage are all costs. Agent time is cheap next to theirs, so agents do the translating: what the person reads or decides from is built for them.
 - **Reality settles facts; the person settles taste.** Facts, causes and numbers get checked, not assumed. Taste, scope and one-way doors are decided by the person from real previews.
-- **Simple is correct.** The simplest architecture that does what was asked is quick to build, easy to debug and cheap to change, and it extends when a real need shows up.
+- **Simple is correct.** The simplest architecture that does what was asked is quick to build, easy to debug and cheap to change, and it extends when a real need shows up. Simple describes the code that results, not the size of the change.
 - **A worker knows only its brief.** Delegation carries intent exactly as far as the brief does.
 
 ## How a task runs
@@ -30,7 +30,7 @@ Each question comes with a recommended default, and work that does not depend on
 
 | Piece | Loads | What it does |
 |---|---|---|
-| `omp-rules.md` | every session and subagent, always | The floor: twelve standing rules in under 4,000 characters |
+| `omp-rules.md` | every session and subagent, always | The floor: thirteen standing rules in under 4,000 characters |
 | `skills/nstack` | before features, multi-step changes, unsettled fixes and agent briefs, and when a brief hands an agent one; autoloaded into author agents | The method: a firm start (size, frame, decide, taste), principles applied by judgment (design, fixes, build, agents, review) and a firm done (prove, report) |
 | `skills/nstack-design` | big asks: rewrites, new systems, unsettled architecture or look | Ground the facts, walk the failures that would cost you, write the one-page shape with slices |
 | `skills/nstack-review` | reviews and critic verdicts | By a model of another family: what would hurt on the real setup, judged by its likelihood there, and what to cut, tighten or redesign, as advice |
@@ -72,6 +72,7 @@ Each question comes with a recommended default, and work that does not depend on
 - Give the outcome in your own words, where you will check it, what must not change, and references for anything visual (or "show me directions").
 - For a long run, give a finish condition that can pass or fail. A duration is not one.
 - For a bug, describe what you see rather than your theory of the cause, so the agent looks everywhere first.
+- A fix goes in at the root even when you ask for a quick one. Say "patch it for now" when a patch is what you want.
 - Races between models and extra critics run only when you ask for them by name ("race opus and astra on this").
 - Anything you say explicitly overrides nstack: models, number of agents, skipping a preview.
 - Long work keeps one ledger at `local/nstack/<slug>.md` in the project; "continue <thing>" resumes from it.
@@ -127,6 +128,7 @@ omp's own agent settings decide which roster agents are on and which model each 
 - [nando-skill](https://github.com/nandorojo/nando-skill) by Fernando Rojo: the call site before the interface, one operation per behavior, configuration read once and one definition per schema (› Design), exhaustive state switches (› Prove), and a layout that holds still with every control earning its space (› Prove). No license, so these are paraphrased ideas; no text was copied.
 - [Panta's reviewer prompt](https://x.com/thepanta82/status/2117542858907337121): the review's simplify questions, "be bold", uncommitted changes as the default, and abstract bug hunting kept out of the review.
 - [Lauren Tan on adversarial reviews](https://x.com/poteto/status/2117437607940681849): harm findings that need a path to the real setup, and the rehearsal beside the one-way-door critic.
+- [Lauren Tan on quick fixes](https://x.com/poteto/status/2121646643124809848): a fault fixed at the root even when that is the larger change, because the next agent copies a patch; "quick" in a request read as how the fault looked, not as a cap on the fix; and no cap on the size of a change in a brief (the floor, `skills/nstack` › Fixes and › Agents).
 - [Dave Kiss](https://x.com/davekiss/status/2118094079879794894) and [astral-sh/uv's AGENTS.md](https://github.com/astral-sh/uv/blob/main/AGENTS.md): comments and docs written for a reader who never saw the conversation, and the guard's note on wording about earlier code, as a note rather than a block.
 
 ## License
