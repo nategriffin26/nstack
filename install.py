@@ -8,7 +8,7 @@
 What it manages:
   ~/.omp/agent/skills/<name>              symlinks to skills/<name>; other nstack* skills are removed
   ~/.omp/agent/commands/<name>.md         symlinks to commands/*.md (nstack)
-  ~/.omp/agent/extensions/<name>.ts       symlinks to extensions/*.ts (nstack-guard, brief, agy)
+  ~/.omp/agent/extensions/<name>.ts       symlinks to extensions/*.ts (nstack-guard, brief)
   ~/.local/bin/web                        symlink to tools/web.py, the research tool the research skills call
   ~/.local/bin/skill-eval                 symlink to tools/skill_eval.py, the routing check nstack-skills calls
   ~/.omp/agent/agents/<name>.md           one per roster agent, generated from roster.toml and agents/*.md
@@ -172,10 +172,15 @@ def routing(r):
     pairs = "; ".join(f"{either(f'`{n}`' for n in authors)} work goes to `{rev}`" for rev, authors in paired.items())
     covered = {n for authors in paired.values() for n in authors}
     unreviewed = [n for n in agents if template_role(r, n) == "author" and eff.spawnable(n) and n not in covered]
+    fallback = next((j for j in names_in(r, JUDGMENT_ROLES) if eff.spawnable(j)), None)
     if not pairs:
-        pairs = "none is enabled, so say in your report that the change had no review"
+        pairs = (f"no other family is enabled, so run a fresh `{fallback}` critic that did not write the change "
+                 "and note in your report that it was same-family"
+                 if fallback else "none is enabled, so say in your report that the change had no review")
     elif unreviewed:
-        pairs += (f"; for {either(f'`{n}`' for n in unreviewed)} work none is enabled, "
+        pairs += (f"; for {either(f'`{n}`' for n in unreviewed)} work no other family is enabled, "
+                  f"so run a fresh `{fallback}` critic and note in your report that it was same-family"
+                  if fallback else f"; for {either(f'`{n}`' for n in unreviewed)} work none is enabled, "
                   "so say in your report that the change had no review")
     levels = {}
     for name, a in agents.items():
@@ -186,7 +191,7 @@ def routing(r):
     lines += ["",
               "Authors (every agent except the readers, research and verify agents) load `skill://nstack` and delegate "
               "only to the readers and research lanes unless their brief grants more; research and verification lanes "
-              f"run only through `skill://nstack-research`. Reviews come from another family: {pairs}. {effort}"]
+              f"run only through `skill://nstack-research`. Reviews prefer another family: {pairs}. {effort}"]
     return "\n".join(lines)
 
 

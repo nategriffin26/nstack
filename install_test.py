@@ -105,7 +105,7 @@ class SwitchedOff(InstallCase):
         p = self.install("task:\n  disabledAgents: [astra]\n")
         self.assertEqual(p.returncode, 0, p.stdout)
         routing = self.installed("AGENTS.md")
-        self.assertIn("none is enabled, so say in your report that the change had no review", routing)
+        self.assertIn("no other family is enabled, so run a fresh `opus` critic", routing)
         self.assertNotIn("work goes to `astra`", routing)
 
     def test_off_reader_is_not_offered_to_authors(self):
@@ -130,9 +130,8 @@ class SwitchedOff(InstallCase):
         self.assertEqual(p.returncode, 0, p.stdout)
         routing = self.installed("AGENTS.md")
         self.assertIn("`gem` work goes to `opus`", routing)
-        self.assertIn("for `opus` or `sonnet` work none is enabled, so say in your report that the change had no review",
+        self.assertIn("for `opus` or `sonnet` work no other family is enabled, so run a fresh `opus` critic",
                       routing)
-
 
 class Catalog(InstallCase):
     def test_model_missing_from_catalog_warns(self):

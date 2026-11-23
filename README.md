@@ -31,24 +31,23 @@ Each question comes with a recommended default, and work that does not depend on
 | Piece | Loads | What it does |
 |---|---|---|
 | `omp-rules.md` | every session and subagent, always | The floor: thirteen standing rules in under 4,000 characters |
-| `skills/nstack` | before features, multi-step changes, unsettled fixes and agent briefs, and when a brief hands an agent one; autoloaded into author agents | The method: a firm start (size, frame, decide, taste), principles applied by judgment (design, fixes, build, agents, review) and a firm done (prove, report) |
-| `skills/nstack-design` | big asks: rewrites, new systems, unsettled architecture or look | Ground the facts, walk the failures that would cost you, write the one-page shape with slices |
-| `skills/nstack-review` | reviews and critic verdicts | By a model of another family: what would hurt on the real setup, judged by its likelihood there, and what to cut, tighten or redesign, as advice |
-| `skills/nstack-verify` | when proof needs more than the tests, a number decides something, or speed is the goal | Proof on the real surface, a number checked before it counts, a speed loop with each change kept or reverted |
+| `skills/nstack` | before features, multi-step changes, unsettled fixes, and agent briefs; autoloaded into author agents | The method: firm at **Start** and **Done**, freedom and craft in between, with subagent, ledger, review, and testing detail in `references/execution.md` |
+| `skills/nstack-design` | large asks: rewrites, new systems, unsettled architecture or look | Ground the facts, walk real failures on your setup, and write the one-page shape with vertical slices |
+| `skills/nstack-review` | reviews and critic verdicts | What could hurt on the real setup and what to cut, tighten, or redesign, as advice; prefers another model family, falls back to a fresh same-family critic |
+| `skills/nstack-verify` | when proof needs more than tests, a number decides something, or speed is the goal | Proof on the real surface, audited numbers before decisions, and a profiled speed loop |
 | `skills/nstack-writing` | before prose anyone reads beyond a few lines | Plain-English writing rules, working-vs-reporting register split, tiered edit pass, a 28-pattern catalog (`references/catalog.md`), genre/voice guides (`references/genres.md`), and an offline linter (`scripts/prose_lint.py`) |
-| `skills/nstack-research` | whenever outside facts are needed | Picks the right depth—Look up, Dig (a short cited note), Wave (research lanes, verification, a synthesis) or Trail (a reading map walked out from seeds)—checks earlier research first, and saves what it finds |
-| `skills/nstack-research-worker` | autoloaded into the `researcher` and `verifier` agents | Their field guide: searching and reading, the note, dossier, map and verification formats, confidence rules |
-| `skills/nstack-climb` | when work should match or beat chosen exemplars | Rounds of changes judged blind by fresh models from other companies against your exemplars; `scripts/judge.py` runs the judges through `omp -p` |
-| `skills/nstack-grill` | only when asked | Rounds of questions to get on the same page before work starts |
-| `skills/nstack-formal` | only when asked | Formal verification of the promise where a bug costs most, left behind as a check that reruns with one command |
-| `skills/nstack-skills` | before writing, updating, merging or retiring a skill | When a skill is worth writing, a description that routes, the body's bar, and the routing check |
+| `skills/nstack-research` | whenever outside facts are needed | Picks the right depth (Look up, Dig, Wave, or Trail), checks earlier research first, and saves findings |
+| `skills/nstack-research-worker` | autoloaded into the `researcher` and `verifier` agents | Field guide for research and verification lanes: searching, reading, dossier/map formats, and confidence rules |
+| `skills/nstack-climb` | when work should match or beat chosen exemplars | Rounds judged blind by fresh models from other companies against your exemplars; `scripts/judge.py` runs judges via `omp -p` |
+| `skills/nstack-grill` | explicit only (`/nstack grill`, hidden from auto-router) | Short rounds of numbered questions to align before building |
+| `skills/nstack-formal` | when asked to formally verify or model-check (`/nstack formal`) | Formal verification of the highest-risk promise in a repo, left as a one-command check |
+| `skills/nstack-skills` | before writing, updating, merging, or retiring a skill | When a skill earns its keep, routing-ready descriptions, body bar, and `skill-eval` check |
 | `skills/schematic-figure`, `skills/patent-drawing` | drawing a schematic, concept figure, block diagram or patent sheet | [LGW Lab's](https://github.com/lgwrightlab/schematic-figure) vendored skills (MIT, see `skills/schematic-figure/UPSTREAM.md`) |
 | `skills/video-brief` | making a short film, app demo or motion piece from a one-line idea | The brief, three directions as stills to pick from, the render on the right renderer per beat, and a fresh critic's review |
 | `tools/web.py` | on PATH as `web` | Search, read, GitHub and Reddit readers, a page store and a citation log that `web check` scores; `web mcp` serves it over MCP, and `tools/executor-web` is that server as an Executor app |
 | `tools/skill_eval.py` | on PATH as `skill-eval` | Scores real past requests against each store's skill list as its router sees it, current beside proposed; cases stay private in `local/evals/skill-routing/` |
 | `extensions/nstack-guard.ts` | always, as an omp extension | One-line notes where written rules did not hold: a message to a critic after its verdict, a question while agents run, a ledger past 12 KB, a comment about earlier code or the conversation, and a pointer back to the ledger after compaction |
 | `extensions/brief.ts`, `extensions/brief.md` | when typed, as `/brief` | A briefing agent reads the request and the code, docs and history it touches, then sends the brief as your prompt in the same session |
-| `extensions/agy.ts` | always, as an omp extension | An `agy` model provider: each turn runs Google's Antigravity CLI (`agy acp`) with its own sign-in and tools in the session's directory and returns its reply, so the `agy` agent works on the Antigravity plan without omp touching Google credentials. Requires `agy` signed in |
 | `tools/brief_eval.py` | by hand | Measures `/brief` on real past requests, briefed against direct, judged by a model of another family |
 | `roster.toml`, `agents/` | at install | Which model does which job; generates omp's agent files and the routing section in `~/.omp/agent/AGENTS.md` |
 | `audit/scripts/session_audit.py` | by hand | Reads omp's local session logs and prints what they show per period: sessions that read the nstack skill before, after or never before their first edit, subagents spawned, questions asked, cost, and the follow-up messages a session needed. The other scripts in `audit/scripts/` are the October 2026 audit's studies |
@@ -59,11 +58,11 @@ Each question comes with a recommended default, and work that does not depend on
 |---|---|
 | `/nstack <task>` | Runs the task under the full method; useful when a session treats a real feature as a quick fix |
 | `/nstack shape <ask>` | The one-page shape and one batch of questions; builds nothing |
-| `/nstack grill [topic]` | Rounds of numbered questions on the important things only, each with a recommended answer; "grill me" works too |
-| `/nstack review` | One deep review of the current change by a model of another family |
-| `/nstack verify` | Proves the current work on the real surface and checks any measured number |
-| `/nstack formal [area]` | Formally verifies the riskiest promise in the repo or the named area; `formal maintain` realigns an existing check |
-| `/nstack correct <mistake>` | Fixes a recurring mistake in structure (a type, a check whose error names the fix, a test), proven against a real past instance |
+| `/nstack grill [topic]` | Rounds of numbered questions on the important decisions, each with a recommended answer |
+| `/nstack review` | One deep review of the current change (cross-family preferred; fresh same-family fallback) |
+| `/nstack verify` | Proves the current work on the real surface and audits any measured number |
+| `/nstack formal [area]` | Formally verifies the riskiest promise in the repo or named area; `formal maintain` resyncs an existing check |
+| `/nstack correct <mistake>` | Fixes a recurring mistake in structure (type, lint check, or test), proven against a real past instance |
 | `/nstack simplify [area]` | Makes an area smaller without changing what it does, one commit per change, with the files touched per commit recorded for the next pass |
 | `/brief <request>` | A briefing agent investigates first and writes the prompt: your words quoted, the facts and decisions that bear on them, the questions only you can answer, and what done looks like |
 

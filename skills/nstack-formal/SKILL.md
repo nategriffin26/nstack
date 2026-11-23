@@ -1,6 +1,6 @@
 ---
 name: nstack-formal
-description: Formal verification on request. Finds the promise in a repo where a bug costs most and tests reach least, checks it with a model checker, a verifier or deterministic simulation of the real code, and leaves a project skill that reruns the check with one command; or brings an existing formal check back in line with code that changed. Read when Nate asks to formally verify, model-check or prove code (`/nstack formal`), or asks whether a formal check still matches the code.
+description: "Formal verification on request (`/nstack formal`). Checks the highest-risk promise in a repo with a model checker, verifier, or deterministic simulation and leaves a one-command project skill, or syncs an existing check with changed code."
 ---
 
 # nstack formal

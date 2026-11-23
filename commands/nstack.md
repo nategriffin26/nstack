@@ -6,7 +6,7 @@ Nate invoked nstack. Read `skill://nstack` and apply it to the request below. By
 
 - `shape <ask>`: also read `skill://nstack-design`; ground it and stop at the shape and the one decision message. Build nothing.
 - `grill [topic]`: read `skill://nstack-grill` and grill Nate on the topic, or the current task, until he confirms the frame.
-- `review`: read `skill://nstack-review` and give the current change one deep review, from an agent of another model family than the one that wrote it.
+- `review`: read `skill://nstack-review` and give the current change one deep review, from another model family when enabled or a fresh same-family critic otherwise.
 - `verify`: read `skill://nstack-verify` and prove the current work on Nate's surface.
 - `formal [area]`: read `skill://nstack-formal` and run its create pass from the named area or property; `formal maintain` runs its maintain pass.
 - `correct <mistake>`: the mistake keeps coming back. Find its past instances (his corrections, reverts, workaround comments), fix it at the highest level that holds (the architecture, a type, a check whose error names the fix, a test; a project AGENTS.md line only for a judgment call), and prove the new check fails on a real past instance.

@@ -1,6 +1,7 @@
 ---
 name: nstack-grill
-description: Getting on the same page with Nate before work starts, in rounds of numbered questions, each with your recommended answer. Read only when he calls for it (`/nstack grill`, "grill me", "grill this plan"); never start one yourself.
+description: "Align with Nate in short rounds of numbered questions before building. Invoked explicitly via `/nstack grill` or when Nate says 'grill me'; never start one unprompted."
+hide: true
 ---
 
 # nstack grill

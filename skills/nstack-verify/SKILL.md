@@ -1,40 +1,47 @@
 ---
 name: nstack-verify
-description: Prove work is done where Nate will use it, and vet numbers before they count. Read when the proof needs more than the project's tests (a phone or Mac app, a deploy, a render, real data), before reporting or acting on a speed, metric, eval or cost number, and when speed is the goal of the work.
+description: "Prove work runs where Nate will use it, and audit numbers before they decide anything. Read when proof needs more than unit tests (phone or Mac app, deploy, render, real data), before reporting or acting on a speed, metric, eval, or cost number, or when speed is the goal."
 ---
 
 # nstack verify
 
-A check proves only what it can see: a fix can pass its tests and still be broken where he uses it: on the device, in the installed command, on his data.
+A check proves only what it can observe: code can pass its unit tests and still fail on the device, in the installed CLI, or on real data.
 
 ## Instruments, cheapest first
-1. Typecheck and the targeted tests that can see the change fail.
-2. The real thing: start the app, CLI, service or pipeline and drive the changed path with real inputs.
-3. His surface after the real update path (restart, OTA, reinstall, reload), or the real file he will open. If you cannot reach it, say so and hand him the one action that lets him check.
-4. A physical device or the bench only for what nothing else shows (push, haptics, frame timing, a motor under load, a signal on a board).
 
-Match the check to the change: a command change runs the real command; a screen change walks the changed flow in the running app; a parser, importer or migration replays a saved input; a speed change compares before and after on the same input; a storage change reads back what was written; a document or figure is opened as rendered.
+1. Typecheck and targeted tests that can fail when the change is broken.
+2. The real program: start the app, CLI, service, or pipeline and drive the changed path on real inputs.
+3. Nate's real surface after the real update path (restart, OTA, reinstall, reload), or the actual file he will open. If you cannot reach it, say so and give him the one step that verifies it.
+4. Physical hardware or the bench only for what simulators cannot show (push notifications, haptics, frame timing, motors under load, board signals).
 
-Look at every screen or output the change touches, in each state, beside his pick, and fix visible defects before he sees them; the taste verdict is his.
+Match the check to the change: run the installed CLI for command changes; walk the running flow for UI changes; replay saved real inputs for parsers, importers, or migrations; compare before and after on identical inputs for speed work; read back persisted state for storage changes; open the rendered output for documents or figures.
+
+Inspect every touched screen or output in every state beside Nate's pick and fix visible defects before he sees it; final taste stays with him.
 
 ## Integrity
-- Never edit a test, fixture, snapshot or verifier to make it pass; if the check is wrong, change it on its own and say so.
-- When something looks broken, rule out the observer (your polling, a stale build, the wrong target), stale state and infrastructure before changing code.
-- Watch long jobs by progress and errors, not only exit.
 
-## Numbers
-Before a number decides anything:
-1. Did the work happen on the intended input? Count errors, skipped and cached work; a speedup that comes with more errors is failing faster, not running faster.
-2. What else could it measure (the wrong input, a warm cache, a no-op, leakage)? Rule each out.
-3. For speed, name the limiter from a profile or counters, not from reading code.
-4. If it varies run to run and decides between close options, repeat both sides and report median and range; a gap inside the spread is no difference, and a change made only for speed that shows none is reverted. A number that decides nothing needs only 1 and 2.
+- Never edit a test, fixture, snapshot, or verifier to make it pass. If a check itself is wrong, fix it explicitly on its own and say why.
+- When something looks broken, rule out the observer (polling lag, stale build, wrong target), stale state, and infrastructure before changing product code.
+- Monitor long-running jobs by progress and errors, not exit code alone.
+
+## Auditing numbers
+
+Before any speed, accuracy, eval, or cost number decides something:
+1. Confirm the intended work actually ran: count errors, skipped items, and cache hits. Failing faster is not a speedup.
+2. Rule out confounders: wrong input, warm cache, no-op path, or data leakage.
+3. For speed work, identify the bottleneck from a profiler or counters—never by guessing from code.
+4. When results vary run to run and decide between close options, repeat both sides and report median and range. A gap inside the spread is noise; revert any speed-only change that shows no real gain. (Informational numbers need only steps 1 and 2.)
 5. State the end-to-end effect on what Nate waits on or sees.
 
 ## Speed loop
-When speed is the goal, run it as a loop on one number:
-1. The number: time or throughput on the path he waits on, from his real use where the project records it (its traces, metrics or logs), otherwise timed around that path on real inputs. OpenTelemetry only where the project already exports it or a request crosses processes; a single process needs its profiler and timers.
-2. Each step: name the limiter from a profile, make one change, measure both sides as in Numbers 4, then keep it or revert it. Each step is one ledger row: the change, before, after, kept or reverted.
-3. Stop at his target, or when the last few steps stay inside the spread, and report where the remaining time goes.
+
+When speed is the goal, optimize one real number:
+1. Pick the end-to-end time or throughput Nate waits on, measured from real traces/logs or timed on real inputs. Use OpenTelemetry only if the project already exports it or requests cross processes; single processes need a profiler and timers.
+2. Each step: profile the bottleneck, make one change, measure both sides (Auditing numbers step 4), and keep or revert. Log one ledger row per step: change, before, after, kept or reverted.
+3. Stop at the target, or once the last few steps stay inside the noise spread, and report where the remaining time goes.
 
 ## Evidence
-Each done-check with its proof: the command and output, a screenshot or file path, a URL. Anything unproven is **not verified on <surface>**, with what would verify it. A surface that will be checked again and has no scripted way in gets a small verify script (launch from clean, check that the build and target running are the ones just made, drive the real path, capture evidence that outlives the cleanup, clean up), run once end to end before anything relies on it and named in the project's AGENTS.md.
+
+Pair each done-check with its proof: command and output, screenshot or artifact path, or live URL. Label anything unreachable **not verified on `<surface>`** with the exact check that would prove it.
+
+For a surface that will be checked repeatedly and lacks a scripted entry point, write a small verify script that launches cleanly, confirms the running build matches what you just built, drives the real path, saves evidence that outlives cleanup, and cleans up after itself. Run it once end to end and name it in the project's `AGENTS.md`.
