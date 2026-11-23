@@ -1,61 +1,59 @@
 ---
 name: nstack-writing
-description: "Write prose anyone reads beyond a few lines without the habits that read as generated. Covers reports, DONE.txt, research notes, docs, READMEs, commit messages, briefs and product copy, with plain replacements and a self-edit pass."
+description: "Write prose anyone reads beyond a few lines without AI tropes, working-dialect shorthand, or verbified nouns. Covers reports, DONE.txt, research notes, docs, READMEs, commit messages, briefs, and product copy, with an offline linter and one edit pass. Avoid when brevity suffices; not for code or site reviews."
 ---
 
 # Writing
 
-The register is set by the floor: write only what someone will act on, with no word Nate would not miss, in precise professional English, leading with what he must judge, in plain words he can read on a phone. This catalog names the habits that break those rules one sentence at a time.
+Write prose Nate or another person can scan on a phone: plain words, concrete facts, no internal agent shorthand, and no habits that read as generated.
 
-The patterns are cues for judgment, not bans. Change one when it is repetitive, vague, overstated or distracts from the content; keep a contrast, parallel, count, technical term or dash that does real work. One "X, not Y" that heads off a likely misreading stays; five on a page go. Never trade a precise technical word for a simpler wrong one, and never swap a habit for its synonym. Quotes, Nate's own words and source text are never edited.
+The standing rules in `omp-rules.md` set the floor (write only what someone will act on, precise professional English, domain terms over slang). This skill carries the craft, the pass, and the offline linter (`scripts/prose_lint.py`).
 
-## The pass
-A short text (a reply, a commit message, a few lines) is written with the catalog in mind. A long or saved text (a note, synthesis, report, DONE.txt, doc, README or brief) is drafted, then edited once:
+## Core principles
 
-1. Read the draft against the catalog and mark each hit.
-2. For each hit, write the plain claim it dressed up: the number, the cause, the source, the next step. A sentence with no claim underneath is deleted.
-3. Reread for loss: every fact, qualification, number, link and confidence label is still there, and the required format is intact.
+1. **Front-load everything.** Use the inverted pyramid at every level: document, section, paragraph, sentence. Put the outcome, answer, or action first, then the evidence, then background only if it changes a decision.
+2. **Two languages: working vs. reporting.** Agents compress long runs into internal shorthand (*"15/15 green"*, *"gate holds"*, *"lane 3 converged"*, coined nicknames). Keep that inside working notes and tool calls. Write human-facing output anew so a reader who never saw the session carries zero translation cost.
+3. **Normal English parts of speech.** Never verbify nouns or stack noun/verb-ambiguous words (*"the root sizes the work"*, *"the check witnesses the invariant"*, *"fix flag check target"*). Use the ordinary verb (*"sets the size of"*, *"proves"*, *"blocks"*, *"affects"*).
+4. **Every sentence earns its space with a fact.** A sentence that adds a new abstract noun without a new concrete fact (name, number, cause, quote, path, or next step) is hollow: supply the fact or cut it. Keep real proper names and exact numbers instead of *"a user"* or *"several"*. Repeat the same noun across adjacent sentences instead of synonym-cycling.
+5. **Precision guardrail and escape hatch.** Prefer plain words over unexplained jargon, and test tough phrasing against a smart non-native English reader. Keep an established technical term when it is the most precise choice, and define it in one sentence if the reader may not know it. Never edit quotes, Nate's own words, code, identifiers, commands, or required formats for style. Break any rule here before writing something awkward or barbarous (Orwell).
+6. **Formatting is structure, not emphasis.** Use sentence case in headings (under ~65 chars, naming the topic). Skip bold and italics for emphasis; bold only literal UI controls (`select Save`) or the one anchor a skimming reader must spot. Vary sentence length naturally (aim for ~15–22 words, rarely over 30) and keep one idea per short paragraph (1–4 sentences).
 
-One pass. Polishing in loops flattens the voice and costs more than it returns.
+## The pass (tiered by stakes)
 
-## Catalog
+Heavy style rules during drafting flatten substance and create caricature. Separate substance from editing when the text is longer than a few lines:
 
-### Structure
-1. **Counting for effect.** "One app, two jobs"; "Three reasons:"; "Four facts stand out". A list shows its own length; state a count only when the count is the point, and say what the things are.
-2. **Headings as slogans or explanations.** "Verdict: pursue narrowly"; "Structure beats tuning"; "Why"; "How it works". A heading names its topic ("Users", "Network exposure"); the finding goes in a sentence with its evidence.
-3. **A bold label on every item**, restated by the sentence after it. Bold only what a skimming reader must find.
-4. **Exposition staged as questions.** "So what changed?"; "Which store should own it?". State the answer. A research note's own question stays as its title.
-5. **Recaps.** A table, box or summary that repeats the paragraph above it. Keep one form: the table when the reader compares rows, the prose when it explains.
-6. **Roadmaps, promises and tour-guide transitions.** "Below I cover…"; "Now for the interesting part."; "With that settled,"; several "Later, only if…" items. Start with the next fact; a deferred item states its trigger once.
+- **Short text** (a chat reply, a commit message, a few lines): write directly in plain English with the core principles in mind. No separate pass needed.
+- **Saved or long text** (report, `DONE.txt`, research note, doc, README, brief, email draft, product copy):
+  1. **Draft for substance first** (facts, numbers, causes, links, decisions) without fussing over style.
+  2. **Run the linter** on the file (or stdin):
+     `python3 ~/Projects/nstack/skills/nstack-writing/scripts/prose_lint.py <file>`
+     High-precision `[flag]` hits are almost always fixed; `[review]` hits are judgment calls.
+  3. **Do one edit pass** against `references/catalog.md`: replace each real hit with the concrete claim underneath (number, cause, source, next step) or delete the sentence. Never swap a tell word for its synonym.
+  4. **Check for loss:** every fact, qualification, number, link, confidence label, and required format is intact.
+  One edit pass only; polishing in loops flattens voice.
+- **High-stakes public prose** (blog posts, essays, launch copy, personal site pages):
+  1. Write a style-stripped **brief** first (thesis, real facts, numbers, quotes, anecdotes; input substance > output length).
+  2. Draft from the brief (for Nate's essay voice, also load `styles/clear-human` from nbrain).
+  3. Run `prose_lint.py` plus one fresh-pass edit (or a separate editor subagent with only the draft, the brief, and this skill so working-session dialect cannot bleed through), and read it as if aloud for rhythm.
 
-### Sentence moves
-7. **Corrective framing by reflex.** "The work left is packaging it, not inventing it"; a misconception set up to be knocked down ("It's tempting to think…"); an answer to an objection nobody raised ("That is not an omission."). State what is true and why; keep the contrast only when a reader would plausibly believe the other side.
-8. **Announced importance and compression claims.** "This matters because"; "Crucially,"; "The key insight is"; "In one sentence:" before a paragraph. Show the consequence, or give the short answer.
-9. **Mirror sentences.** "The standard sets a floor; demand and concept make the outcome." Write each half with its own qualification.
-10. **Results turned into morals.** "A watcher is not a backup." after a specific finding. End on the finding and what to do about it.
-11. **Decorative participle tails.** ", highlighting the need for…"; ", making it ideal for…". State the causal link or cut the clause.
-12. **Arrows and dashes as sentence glue.** "phone → core → OpenRouter returned the right text"; a main point carried inside a pair of dashes. Arrows belong in menu paths (Settings › Voice) and value changes (10.5% → 2.3%); a sentence uses verbs, and an aside that matters becomes its own sentence.
+## Highest-frequency traps (quick list)
 
-### Words and tone
-13. **Agency verbs on things.** Code, models and services that "decide", "want" or "insist": "the recipe wants 16 GPUs". Standard usage stays ("the server refuses the token"); write "needs 16 GPUs".
-14. **A recurring metaphor.** "buys", "tax", "moat", "load-bearing", "lands", "quietly" on unrelated points. One apt metaphor is fine; the same device on every point is a habit.
-15. **Consultancy and promotional words.** playbook, table stakes, leverage, unlock, north star; seamless, robust, powerful, elegant, clean, comprehensive, game-changing. Name the procedure, or give the evidence: tests passed, milliseconds measured, people who use it.
-16. **Moralized precision.** "honest numbers", "honestly", "calibrated", "the real gap". Name the property: measured on the device, a held-out set, the 95th percentile. "Real" stays when it contrasts with a simulator, a mock or a copy.
-17. **Vague attribution.** "experts agree"; "best practice is". Name and link the source, mark it as your inference, or cut it.
-18. **Filler.** "It's worth noting that"; "Let's dive in"; "Great question"; "I hope this helps"; a closing "challenges and next steps" with no specific problem in it.
+Full 28-item catalog with plain replacements lives in `references/catalog.md`. Watch these on every draft:
 
-### Caveats and repetition
-19. **Theatrical, stacked or repeated caveats.** "not a claim that every checklist tool makes this server safe"; "may potentially"; the same limitation in the summary, a section and the close. State the real limit once, where it applies, with one confidence label where it changes the decision.
-20. **Process story and internal names.** How the work went ("I mined", rounds, lanes) and names only agents know (lane names, job numbers, ledger files) in prose for Nate. Lead with the result; give method only where it changes how far he can trust it. Citations and evidence paths stay.
-21. **Mechanical uniformity.** Every paragraph the same length and shape, a triad by default ("fast, reliable and simple"), ornate words where plain ones serve. Let the content set the shape; one template per list is right when the items are alike.
+- **Uncommon verbifications & POS stacks:** *"sizes the work"*, *"witnesses the invariant"*, *"gates the merge"*, *"surfaces the gap"*, *"impacts latency"*, *"fix flag check target"*.
+- **Working-dialect bleed:** *"all green"*, *"spine landed"*, *"the gate holds"*, *"as requested"*, *"used to be"*, internal lane/job/ledger names.
+- **Hollowness & avoided nouns:** new abstract nouns with no new verifiable fact; *"several/many"* where you have the number; synonym cycling instead of repeating the real noun.
+- **Reflexive contrasts & wind-ups:** *"It's not X, it's Y"*, *", not in 600 posts"*, *"Here's the thing:"*, *"This matters because"*, *"Crucially,"*, *"The result? ..."*, *"That's it."*
+- **Participle tails & copula avoidance:** *", highlighting/underscoring/ensuring…"*; *"serves as / stands as"* → *"is"*.
+- **Consultancy & promo filler:** `"delve"`, `"tapestry"`, `"leverage"`, `"utilize"`, `"seamless"`, `"robust"`, `"powerful"`, `"elegant"`, `"comprehensive"`, `"pivotal"`, `"testament"`, `"playbook"`, `"unlock"`, `"load-bearing"`, `"quietly"`, `"smoking gun"`, `"honest numbers"`.
+- **Formatting tells:** bold-lead bullets restated by the next sentence, slogan/explaining headings (*"Why"*, *"How it works"*, *"Verdict: …"*), em dashes carrying main clauses, arrows replacing verbs in prose, uniform sentence lengths and default triads.
 
-## Where each kind of text slips
-- **Status reports and DONE.txt**: process story, self-praise, arrows, "the real", defensive asides, caveats repeated across lines.
-- **Research notes and syntheses**: slogan headings, counted packages, bold leads, theatrical disclaimers, vague attribution, recap tables, internal lane names.
-- **Docs and READMEs**: slogan and explaining headings, promotional words, roadmaps; in a README or AGENTS.md, what the project used to do or the conversation behind a change (a CHANGELOG records history by design).
-- **Commit messages and PR descriptions**: the subject says what changed; the body gives why and the option it beat. No "This commit…", no diff restated, and no conversation ("as requested", "per our discussion"), because a reader of the log never saw it.
-- **Product copy**: promotional words, announced importance ("Important:"), helper text that restates the label. In lists and feeds, including text a model writes at runtime (titles, summaries, digest rows, cards), each item opens with the words that set it apart, subject then verb, or the verb alone when every item shares the subject; every item follows one template and one term per concept, so a difference in length, structure or wording always means something; a prompt that generates such items states that template.
-- **Briefs to agents**: Nate's words stay verbatim; the framing around them follows the catalog.
+## References
 
-## Source
-Adapted from the "Correct and avoid AI stylistic tropes" section of Giuseppe Paleologo's `scholarly-paper-revision` skill ([post](https://x.com/__paleologo/status/2116602494428299632)), which draws on [Wikipedia's guide to signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) and studies of word frequencies; generalized from mathematical papers to what agents write, with patterns added from Nate's agents' reports. Those studies describe patterns across many documents and cannot show who wrote a given passage.
+- `references/catalog.md`: the full 28-item pattern catalog with plain replacements. Read during the edit pass on long or saved text.
+- `references/genres.md`: rules by document type (Diátaxis + Google Dev Docs for documentation, reporting-layer rules, commit messages, the 5-question copy test + runtime lists, and brief-first / voice-skill guidance). Read before writing docs, copy, or public pieces.
+- `scripts/prose_lint.py`: offline deterministic prose linter (`python3 scripts/prose_lint.py <file>` or `--json`).
+
+## Provenance
+
+Built from Nate's standing writing rules and complaints ("word salad… filled with llm-isms", 2026-11-14; "REMOVE ALL EXTRANEOUS TEXT", 2026-11-17). Draws on his X bookmarks: Misha Sinitcyn and Dmitry Rybin on verbified nouns and POS ambiguity, ungetsuli on working-dialect bleed, emubrigadier on LLM twins, Giuseppe Paleologo's `scholarly-paper-revision`, GOV.UK and Google Developer Docs, Orwell, Diátaxis, Peter Yang's `no-ai-slop`, Ian Nuttall's `seo lint`, Dan Shipper and hammer_mt on brief-first drafting and voice evals, and Dave Kiss and astral-sh/uv on zero chat-leak. Full links live in `README.md`.
