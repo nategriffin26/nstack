@@ -164,6 +164,10 @@ DRAMATIC_FRAGMENT_RE = re.compile(
     r"(?:^|\.\s+|[!?]\s+)(That'?s it\.|That'?s the whole (?:thing|story|point)\.|Full stop\.|Period\.|Simple as that\.)",
     re.I,
 )
+DEFENSIVE_DISCLAIMER_RE = re.compile(
+    r"\b(?:Nothing here is|No (?:result|number|score|entry|item) here is|Every [a-z]+ is [^.?!]{3,60}\.\s*Nothing (?:here )?is|It is not a [a-z]+(?:,\s*and| and|,) neither)\b",
+    re.I,
+)
 METAPHOR_HABIT_RE = re.compile(
     r"\b(load-bearing|buys (?:us|you|nothing|little)|quietly|lands well|pays a tax|tax on|guardrail against|north star)\b",
     re.I,
@@ -375,6 +379,12 @@ def lint_text(text: str, filename: str) -> tuple[list[Finding], dict]:
             findings.append(Finding(
                 filename, idx, "flag", "dramatic-fragment", m.group(0),
                 "Cut the filler punchline or fold it into a real sentence.",
+            ))
+
+        for m in DEFENSIVE_DISCLAIMER_RE.finditer(check_text):
+            findings.append(Finding(
+                filename, idx, "review", "defensive-disclaimer", m.group(0),
+                "Cut defensive disclaimers explaining what a widget or result is not; make the label itself clear.",
             ))
 
         for m in SELF_ANSWERED_Q_RE.finditer(check_text):

@@ -37,7 +37,7 @@ Apply the **5-question completeness test** before tweaking wording (most copy pr
 5. What should the reader do next?
 
 Runtime lists, feeds, cards, and digests (titles, summaries, status rows):
-- Cut every string the user would not miss (eyebrow labels, subtitles restating titles, helper text restating labels).
+- Cut every string the user would not miss: eyebrow labels, subtitles restating titles, helper text restating labels, and defensive UI disclaimers under charts, widgets, or footers (*"It is not a probability, and neither side is a proof"*, *"No result here is…"*, *"Every X is Y. Nothing here is Z."*). If the UI label itself is clear, it needs no apologetic footnote explaining what the number is not.
 - Open each item with the words that set it apart: subject then verb, or verb alone when every item shares the subject.
 - Hold one template and one term per concept across every row so a difference in length or wording always signals meaning. State that template explicitly in any prompt that generates the rows.
 
