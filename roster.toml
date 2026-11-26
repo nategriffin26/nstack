@@ -41,6 +41,13 @@ label = "Claude Opus 5.5"
 family = "anthropic"
 thinking = "medium"
 
+[agents.opus-xhigh]
+model = "anthropic/claude-opus-5-5"
+label = "Claude Opus 5.5 (xhigh)"
+family = "anthropic"
+thinking = "xhigh"
+note = "only when Nate asks for xhigh"
+
 [agents.astra]
 model = "openai-codex/gpt-6-astra"
 label = "GPT-6 Astra"
